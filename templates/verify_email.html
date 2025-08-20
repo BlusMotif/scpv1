@@ -1,75 +1,74 @@
 
 {% extends "base.html" %}
 
-{% block title %}Verify Email - CS Department{% endblock %}
+{% block title %}Email Verification - Koforidua Technical University Student Portal{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="auth-logo">
-            <h2>Email Verification</h2>
-            <p>We've sent a verification code to your email</p>
-        </div>
-        
-        <form method="POST" class="auth-form">
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required 
-                       placeholder="Enter your email address">
+<div class="login-page">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Left Side - Branding/Image -->
+            <div class="col-lg-6 d-none d-lg-flex login-left-panel">
+                <div class="login-branding">
+                    <div class="branding-content">
+                        <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="main-logo">
+                        <h2 class="university-title">KOFORIDUA TECHNICAL UNIVERSITY</h2>
+                        <p class="university-subtitle">INNOVATING FOR DEVELOPMENT.</p>
+                        <div class="decorative-elements">
+                            <div class="element element-1"></div>
+                            <div class="element element-2"></div>
+                            <div class="element element-3"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label for="verification_code">Verification Code</label>
-                <input type="text" id="verification_code" name="verification_code" required 
-                       placeholder="Enter 6-digit code" pattern="\d{6}" maxlength="6">
+            <!-- Right Side - Verification Form -->
+            <div class="col-lg-6 login-right-panel">
+                <div class="login-form-container">
+                    <div class="login-header text-center mb-4">
+                        <!-- Mobile Logo -->
+                        <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="mobile-logo d-lg-none mb-3">
+                        <h3 class="login-title">Email Verification</h3>
+                        <p class="login-subtitle text-muted">We've sent a verification code to your email address</p>
+                    </div>
+                    
+                    <div class="login-form">
+                        <form method="POST">
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Email" required>
+                                <label for="email">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </label>
+                            </div>
+                            
+                            <div class="form-floating mb-4">
+                                <input type="text" class="form-control" id="verification_code" name="verification_code" 
+                                       placeholder="Verification Code" required pattern="\d{6}" maxlength="6">
+                                <label for="verification_code">
+                                    <i class="fas fa-key me-2"></i>6-Digit Verification Code
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg w-100 login-submit-btn">
+                                <i class="fas fa-check-circle me-2"></i>Verify Email
+                            </button>
+                        </form>
+                        
+                        <div class="login-divider">
+                            <span>or</span>
+                        </div>
+                        
+                        <div class="alternative-actions text-center">
+                            <p class="mb-2">Already verified? <a href="{{ url_for('login') }}" class="contact-admin">Sign In</a></p>
+                            <p class="mb-2">Didn't receive the code? <a href="{{ url_for('register') }}" class="contact-admin">Back to Registration</a></p>
+                            <p class="mb-0">Need help? <a href="#" class="contact-admin">Contact Support</a></p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <button type="submit" class="btn btn-primary btn-block">Verify Email</button>
-        </form>
-        
-        <div class="auth-footer">
-            <p>Already verified? <a href="{{ url_for('login') }}">Sign In</a></p>
-            <p>Need help? <a href="{{ url_for('forgot_password') }}">Contact Support</a></p>
-            <p>Didn't receive the code? <a href="{{ url_for('register') }}">Back to registration</a></p>
         </div>
     </div>
 </div>
-
-<style>
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-}
-
-.auth-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-    padding: 40px;
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-}
-
-.auth-header {
-    margin-bottom: 30px;
-}
-
-.auth-logo {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 20px;
-}
-
-.btn-block {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-}
-</style>
 {% endblock %}
