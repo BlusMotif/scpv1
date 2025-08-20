@@ -17,6 +17,9 @@ ENV/
 # Firebase credentials
 firebase_credentials.json
 firebase-credentials.json
+firebase-adminsdk-*.json
+attached_assets/firebase-adminsdk-*.json
+scp-2-c5c6d-firebase-adminsdk-*.json
 
 # Environment variables
 .env
