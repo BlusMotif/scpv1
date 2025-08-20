@@ -262,7 +262,7 @@ def create_subadmin():
     return render_template('create_subadmin.html')
 
 @app.route('/update-issue-status/<issue_id>', methods=['POST'])
-def update_issue_status():
+def update_issue_status(issue_id):
     if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
         flash('Access denied.', 'danger')
         return redirect(url_for('login'))
@@ -278,7 +278,7 @@ def update_issue_status():
     return redirect(url_for('subadmin_dashboard'))
 
 @app.route('/delete-issue/<issue_id>', methods=['POST'])
-def delete_issue():
+def delete_issue(issue_id):
     if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
         flash('Access denied.', 'danger')
         return redirect(url_for('login'))
