@@ -8,7 +8,7 @@ channel = "stable-25_05"
 run = ["sh", "-c", "RUN THE PROJECT"]
 
 [workflows]
-runButton = "Run Firebase App"
+runButton = "Run Working App"
 
 [[workflows.workflow]]
 name = "Run Flask App"

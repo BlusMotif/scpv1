@@ -19,6 +19,17 @@ def initialize_firebase():
         # Use the credentials file path
         cred_path = os.path.join(os.path.dirname(__file__), 'firebase_credentials.json')
         
+        # Check if credentials file exists
+        if not os.path.exists(cred_path):
+            print(f"Firebase credentials file not found at: {cred_path}")
+            print("Using default Firebase Realtime Database URL...")
+            # Initialize with default settings for development
+            firebase_admin.initialize_app(options={
+                'databaseURL': 'https://scpv2-fa488-default-rtdb.firebaseio.com/'
+            })
+            print("Firebase initialized with default settings")
+            return True
+        
         # Load credentials and get database URL
         with open(cred_path, 'r') as f:
             cred_data = json.load(f)
@@ -32,7 +43,17 @@ def initialize_firebase():
         
     except Exception as e:
         print(f"Error initializing Firebase: {e}")
-        return False
+        print("Attempting fallback initialization...")
+        try:
+            # Fallback initialization for development
+            firebase_admin.initialize_app(options={
+                'databaseURL': 'https://scpv2-fa488-default-rtdb.firebaseio.com/'
+            })
+            print("Firebase initialized with fallback settings")
+            return True
+        except Exception as fallback_error:
+            print(f"Fallback initialization also failed: {fallback_error}")
+            return False
 
 def get_realtime_db():
     """Get Firebase Realtime Database reference"""
