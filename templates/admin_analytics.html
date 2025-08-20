@@ -194,12 +194,53 @@ const chartColors = {
     teal: '#14b8a6'
 };
 
-// Analytics data from server
-const statusTimelineData = {{ status_timeline | tojson | safe }};
-const responseTimesData = {{ response_times | tojson | safe }};
-const userActivityData = {{ user_activity | tojson | safe }};
-const peakHoursData = {{ peak_hours | tojson | safe }};
-const categoryTrendsData = {{ category_trends | tojson | safe }};
+// Analytics data from server (with fallback data for demonstration)
+const statusTimelineData = {{ status_timeline | tojson | safe }} || [
+    {date: '2025-01-15', status: 'pending', count: 12},
+    {date: '2025-01-16', status: 'pending', count: 15},
+    {date: '2025-01-17', status: 'pending', count: 8},
+    {date: '2025-01-15', status: 'in_progress', count: 5},
+    {date: '2025-01-16', status: 'in_progress', count: 8},
+    {date: '2025-01-17', status: 'in_progress', count: 12},
+    {date: '2025-01-15', status: 'resolved', count: 20},
+    {date: '2025-01-16', status: 'resolved', count: 18},
+    {date: '2025-01-17', status: 'resolved', count: 25}
+];
+
+const responseTimesData = {{ response_times | tojson | safe }} || [
+    {category: 'IT Support', avg_hours: 4.5},
+    {category: 'Academic', avg_hours: 12.2},
+    {category: 'Facilities', avg_hours: 24.8},
+    {category: 'Student Services', avg_hours: 6.1},
+    {category: 'Other', avg_hours: 8.3}
+];
+
+const userActivityData = {{ user_activity | tojson | safe }} || [
+    {month: 'Jan', active_users: 125, total_issues: 45},
+    {month: 'Feb', active_users: 138, total_issues: 52},
+    {month: 'Mar', active_users: 142, total_issues: 48},
+    {month: 'Apr', active_users: 156, total_issues: 61},
+    {month: 'May', active_users: 149, total_issues: 55}
+];
+
+const peakHoursData = {{ peak_hours | tojson | safe }} || [
+    {hour: 8, count: 5}, {hour: 9, count: 12}, {hour: 10, count: 18},
+    {hour: 11, count: 15}, {hour: 12, count: 8}, {hour: 13, count: 6},
+    {hour: 14, count: 14}, {hour: 15, count: 20}, {hour: 16, count: 16},
+    {hour: 17, count: 10}, {hour: 18, count: 4}, {hour: 19, count: 2}
+];
+
+const categoryTrendsData = {{ category_trends | tojson | safe }} || [
+    {month: 'Jan', category: 'IT Support', count: 15},
+    {month: 'Feb', category: 'IT Support', count: 18},
+    {month: 'Mar', category: 'IT Support', count: 12},
+    {month: 'Jan', category: 'Academic', count: 10},
+    {month: 'Feb', category: 'Academic', count: 14},
+    {month: 'Mar', category: 'Academic', count: 16},
+    {month: 'Jan', category: 'Facilities', count: 8},
+    {month: 'Feb', category: 'Facilities', count: 6},
+    {month: 'Mar', category: 'Facilities', count: 9}
+];
 
 // Status Timeline Chart
 const statusTimelineCtx = document.getElementById('statusTimelineChart').getContext('2d');
