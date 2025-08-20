@@ -17,7 +17,7 @@
                 <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                 </a>
-                <a href="{{ url_for('admin_create_subadmin') }}" class="btn btn-primary">
+                <a href="{{ url_for('create_subadmin') }}" class="btn btn-primary">
                     <i class="fas fa-user-plus me-2"></i>Create Sub Admin
                 </a>
             </div>
@@ -39,7 +39,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="stat-card bg-success text-white">
                 <div class="stat-card-content">
@@ -53,7 +53,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="stat-card bg-info text-white">
                 <div class="stat-card-content">
@@ -67,7 +67,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6">
             <div class="stat-card bg-warning text-white">
                 <div class="stat-card-content">
@@ -185,7 +185,7 @@
                     <i class="fas fa-users fa-3x text-muted mb-3"></i>
                     <h4>No Sub Admins Found</h4>
                     <p class="text-muted">Create your first sub-administrator to help manage the system.</p>
-                    <a href="{{ url_for('admin_create_subadmin') }}" class="btn btn-primary">
+                    <a href="{{ url_for('create_subadmin') }}" class="btn btn-primary">
                         <i class="fas fa-user-plus me-2"></i>Create Sub Admin
                     </a>
                 </div>
@@ -338,9 +338,9 @@
 function filterSubAdmins(status) {
     const table = document.getElementById('subadminsTable');
     if (!table) return;
-    
+
     const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-    
+
     for (let row of rows) {
         const rowStatus = row.getAttribute('data-status');
         if (status === 'all' || rowStatus === status) {
@@ -349,7 +349,7 @@ function filterSubAdmins(status) {
             row.style.display = 'none';
         }
     }
-    
+
     // Update dropdown button text
     event.target.closest('.dropdown').querySelector('.dropdown-toggle').innerHTML = 
         '<i class="fas fa-filter me-2"></i>' + event.target.textContent;
@@ -485,11 +485,11 @@ setTimeout(() => {
     .dashboard-container {
         padding: 1rem;
     }
-    
+
     .header-actions {
         margin-top: 1rem;
     }
-    
+
     .stat-card {
         margin-bottom: 1rem;
     }

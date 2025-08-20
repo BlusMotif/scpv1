@@ -302,7 +302,16 @@ def manage_users():
         return redirect(url_for('login'))
 
     users = firebase_db.get_all_users()
-    return render_template('manage_subadmins.html', users=users)
+    
+    # Add missing properties for template compatibility
+    for user in users:
+        user['username'] = user.get('email', '').split('@')[0]
+        user['is_active'] = user.get('is_active', True)
+        user['assigned_issues'] = 0  # TODO: Calculate from Firebase
+        user['login_count'] = user.get('login_count', 0)
+        user['last_login'] = user.get('last_login', 'Never')
+    
+    return render_template('manage_subadmins.html', subadmins=users, users=users, activities=[])
 
 @app.route('/create-subadmin', methods=['GET', 'POST'])
 def create_subadmin():
@@ -382,6 +391,7 @@ def my_issues():
     issues = firebase_db.get_issues(user_id=session['user_id'])
     return render_template('my_issues.html', issues=issues)
 
+@app.route('/system-settings', methods=['GET', 'POST'])
 @app.route('/admin/system-settings', methods=['GET', 'POST'])
 def system_settings():
     if 'user_role' not in session or session['user_role'] != 'supa_admin':
