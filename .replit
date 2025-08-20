@@ -8,7 +8,7 @@ channel = "stable-25_05"
 run = ["sh", "-c", "RUN THE PROJECT"]
 
 [workflows]
-runButton = "Run Working App"
+runButton = "Run Firebase App"
 
 [[workflows.workflow]]
 name = "Run Flask App"
@@ -36,6 +36,15 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python working_app.py"
+
+[[workflows.workflow]]
+name = "Run Firebase App"
+author = 46679466
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
 
 [[ports]]
 localPort = 5000
