@@ -1,7 +1,7 @@
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 def parse_datetime(date_string):
@@ -117,39 +117,93 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # Get active prefixes for the form
+    try:
+        prefixes_ref = firebase_db.db_ref.child('index_prefixes')
+        prefixes_data = prefixes_ref.get() or {}
+        active_prefixes = []
+        for key, value in prefixes_data.items():
+            if value.get('is_active', True):
+                active_prefixes.append({
+                    'prefix': value.get('prefix', ''),
+                    'description': value.get('description', '')
+                })
+        active_prefixes.sort(key=lambda x: x['prefix'])
+    except Exception as e:
+        active_prefixes = [{'prefix': 'CS', 'description': 'Computer Science'}]
+        print(f"Error getting prefixes: {e}")
+
     if request.method == 'POST':
         email = request.form['email'].strip().lower()
         password = request.form['password']
         full_name = request.form['full_name']
+        index_number = request.form.get('index_number', '').strip().upper()
 
         if not email.endswith('@ktu.edu.gh'):
             flash('Please use your institutional email (@ktu.edu.gh).', 'danger')
-            return render_template('register.html')
+            return render_template('register.html', prefixes=active_prefixes)
+
+        # Validate index number format
+        if index_number:
+            valid_prefix = False
+            for prefix_info in active_prefixes:
+                if index_number.startswith(prefix_info['prefix']):
+                    valid_prefix = True
+                    break
+            
+            if not valid_prefix:
+                valid_prefixes = ', '.join([p['prefix'] for p in active_prefixes])
+                flash(f'Invalid index number format. Must start with: {valid_prefixes}', 'danger')
+                return render_template('register.html', prefixes=active_prefixes)
 
         existing_user = firebase_db.get_user_by_email(email)
 
         if existing_user:
             flash('Email already registered.', 'danger')
-            return render_template('register.html')
+            return render_template('register.html', prefixes=active_prefixes)
 
         user_data = {
             'email': email,
             'password': generate_password_hash(password),
             'full_name': full_name,
+            'index_number': index_number,
             'role': 'student',
-            'is_verified': True,
+            'is_verified': False,
             'created_at': datetime.now().isoformat()
         }
 
         user_id = firebase_db.add_user(user_data)
 
         if user_id:
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('login'))
+            # Send verification email
+            from email_utils import send_verification_email, generate_verification_code
+            verification_code = generate_verification_code()
+            
+            # Store verification code in Firebase
+            try:
+                verification_ref = firebase_db.db_ref.child('email_verifications')
+                verification_ref.push({
+                    'email': email,
+                    'code': verification_code,
+                    'user_id': user_id,
+                    'expires_at': (datetime.now() + timedelta(hours=24)).isoformat(),
+                    'created_at': datetime.now().isoformat()
+                })
+                
+                if send_verification_email(email, verification_code, full_name):
+                    flash('Registration successful! Please check your email for verification instructions.', 'success')
+                    return redirect(url_for('verify_email'))
+                else:
+                    flash('Registration successful, but failed to send verification email. Please contact support.', 'warning')
+                    return redirect(url_for('login'))
+            except Exception as e:
+                print(f"Error sending verification email: {e}")
+                flash('Registration successful! Please login.', 'success')
+                return redirect(url_for('login'))
         else:
             flash('Registration failed. Please try again.', 'danger')
 
-    return render_template('register.html')
+    return render_template('register.html', prefixes=active_prefixes)
 
 @app.route('/student-dashboard')
 def student_dashboard():
@@ -360,6 +414,53 @@ def submit_issue():
             flash('Failed to submit issue. Please try again.', 'danger')
 
     return render_template('submit_issue.html')
+
+@app.route('/verify-email', methods=['GET', 'POST'])
+def verify_email():
+    if request.method == 'POST':
+        email = request.form['email'].strip().lower()
+        verification_code = request.form['verification_code'].strip()
+        
+        try:
+            # Find verification record
+            verifications_ref = firebase_db.db_ref.child('email_verifications')
+            verifications_data = verifications_ref.get() or {}
+            
+            valid_verification = None
+            verification_key = None
+            
+            for key, verification in verifications_data.items():
+                if (verification.get('email') == email and 
+                    verification.get('code') == verification_code):
+                    
+                    # Check if not expired
+                    expires_at = datetime.fromisoformat(verification.get('expires_at', ''))
+                    if datetime.now() < expires_at:
+                        valid_verification = verification
+                        verification_key = key
+                        break
+            
+            if valid_verification:
+                # Update user as verified
+                user_id = valid_verification['user_id']
+                firebase_db.update_user(user_id, {
+                    'is_verified': True,
+                    'verified_at': datetime.now().isoformat()
+                })
+                
+                # Delete verification record
+                verifications_ref.child(verification_key).delete()
+                
+                flash('Email verified successfully! You can now login.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Invalid or expired verification code.', 'danger')
+        
+        except Exception as e:
+            print(f"Error verifying email: {e}")
+            flash('Verification failed. Please try again.', 'danger')
+    
+    return render_template('verify_email.html')
 
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
@@ -613,6 +714,126 @@ def delete_notification(notification_id):
         print(f"Error deleting notification: {e}")
     
     return redirect(url_for('admin_manage_notifications'))
+
+@app.route('/admin/manage-prefixes')
+def manage_prefixes():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        prefixes_ref = firebase_db.db_ref.child('index_prefixes')
+        prefixes_data = prefixes_ref.get() or {}
+        prefixes = []
+        for key, value in prefixes_data.items():
+            prefix = value
+            prefix['id'] = key
+            prefixes.append(prefix)
+        prefixes.sort(key=lambda x: x.get('prefix', ''))
+    except Exception as e:
+        prefixes = []
+        print(f"Error getting prefixes: {e}")
+    
+    return render_template('manage_prefixes.html', prefixes=prefixes)
+
+@app.route('/admin/add-prefix', methods=['POST'])
+def add_prefix():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    prefix = request.form.get('prefix', '').upper().strip()
+    description = request.form.get('description', '').strip()
+    is_active = request.form.get('is_active') == 'on'
+    
+    if prefix and description:
+        try:
+            prefix_data = {
+                'prefix': prefix,
+                'description': description,
+                'is_active': is_active,
+                'created_at': datetime.now().isoformat()
+            }
+            prefixes_ref = firebase_db.db_ref.child('index_prefixes')
+            prefixes_ref.push(prefix_data)
+            flash('Index prefix added successfully!', 'success')
+        except Exception as e:
+            flash('Failed to add prefix.', 'danger')
+            print(f"Error adding prefix: {e}")
+    else:
+        flash('Please fill in all required fields.', 'danger')
+    
+    return redirect(url_for('manage_prefixes'))
+
+@app.route('/admin/update-prefix/<prefix_id>', methods=['POST'])
+def update_prefix(prefix_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    prefix = request.form.get('prefix', '').upper().strip()
+    description = request.form.get('description', '').strip()
+    is_active = request.form.get('is_active') == 'on'
+    
+    if prefix and description:
+        try:
+            update_data = {
+                'prefix': prefix,
+                'description': description,
+                'is_active': is_active,
+                'updated_at': datetime.now().isoformat()
+            }
+            prefix_ref = firebase_db.db_ref.child('index_prefixes').child(prefix_id)
+            prefix_ref.update(update_data)
+            flash('Index prefix updated successfully!', 'success')
+        except Exception as e:
+            flash('Failed to update prefix.', 'danger')
+            print(f"Error updating prefix: {e}")
+    else:
+        flash('Please fill in all required fields.', 'danger')
+    
+    return redirect(url_for('manage_prefixes'))
+
+@app.route('/admin/delete-prefix/<prefix_id>', methods=['POST'])
+def delete_prefix(prefix_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        prefix_ref = firebase_db.db_ref.child('index_prefixes').child(prefix_id)
+        prefix_ref.delete()
+        flash('Index prefix deleted successfully!', 'success')
+    except Exception as e:
+        flash('Failed to delete prefix.', 'danger')
+        print(f"Error deleting prefix: {e}")
+    
+    return redirect(url_for('manage_prefixes'))
+
+@app.route('/admin/toggle-prefix/<prefix_id>', methods=['POST'])
+def toggle_prefix(prefix_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        prefix_ref = firebase_db.db_ref.child('index_prefixes').child(prefix_id)
+        prefix_data = prefix_ref.get()
+        if prefix_data:
+            new_status = not prefix_data.get('is_active', True)
+            prefix_ref.update({
+                'is_active': new_status,
+                'updated_at': datetime.now().isoformat()
+            })
+            status_text = 'activated' if new_status else 'deactivated'
+            flash(f'Prefix {status_text} successfully!', 'success')
+        else:
+            flash('Prefix not found.', 'danger')
+    except Exception as e:
+        flash('Failed to update prefix status.', 'danger')
+        print(f"Error toggling prefix: {e}")
+    
+    return redirect(url_for('manage_prefixes'))
 
 @app.route('/admin/users/delete/<user_id>', methods=['POST'])
 def delete_user(user_id):

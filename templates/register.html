@@ -60,10 +60,16 @@
 
                             <div class="form-floating mb-3">
                                 <input type="text" class="form-control" id="index_number" name="index_number" 
-                                       placeholder="Index Number" required pattern="CS[A-Z]?\d{3,}">
+                                       placeholder="Index Number" required>
                                 <label for="index_number">
                                     <i class="fas fa-hashtag me-2"></i>Index Number
                                 </label>
+                                <div class="form-text">
+                                    Valid prefixes: 
+                                    {% for prefix in prefixes %}
+                                        <span class="badge bg-secondary me-1">{{ prefix.prefix }}</span>
+                                    {% endfor %}
+                                </div>
                             </div>
 
                             <div class="row mb-3">

@@ -1,0 +1,211 @@
+
+{% extends "base.html" %}
+
+{% block title %}Manage Index Prefixes - Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">
+                    <i class="fas fa-tags me-3"></i>Manage Index Prefixes
+                </h1>
+                <p class="dashboard-subtitle text-muted">Add, edit, and manage student index number prefixes</p>
+            </div>
+            <div class="header-actions">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPrefixModal">
+                    <i class="fas fa-plus me-2"></i>Add New Prefix
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Index Prefixes ({{ prefixes|length }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if prefixes %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Prefix</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prefix in prefixes %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary fs-6">{{ prefix.prefix }}</span>
+                            </td>
+                            <td>{{ prefix.description }}</td>
+                            <td>
+                                {% if prefix.get('is_active', True) %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ parse_datetime(prefix.get('created_at', '')) }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editPrefixModal{{ prefix.id }}"
+                                            title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('toggle_prefix', prefix_id=prefix.id) }}" class="d-inline">
+                                        <button type="submit" 
+                                                class="btn btn-outline-{% if prefix.get('is_active', True) %}warning{% else %}success{% endif %}"
+                                                title="{% if prefix.get('is_active', True) %}Deactivate{% else %}Activate{% endif %}">
+                                            <i class="fas fa-{% if prefix.get('is_active', True) %}pause{% else %}play{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deletePrefixModal{{ prefix.id }}"
+                                            title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Index Prefixes</h5>
+                <p class="text-muted">Add your first prefix to get started.</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPrefixModal">
+                    <i class="fas fa-plus me-2"></i>Add First Prefix
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Prefix Modal -->
+<div class="modal fade" id="addPrefixModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Index Prefix</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_prefix') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="prefix" class="form-label">Prefix Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="prefix" name="prefix" required 
+                               placeholder="e.g., CS, IT, EE" maxlength="10" style="text-transform: uppercase;">
+                        <div class="form-text">Enter 2-4 character prefix (will be converted to uppercase)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="description" name="description" required 
+                               placeholder="e.g., Computer Science Students">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">
+                            Active (available for student registration)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Prefix</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Prefix Modals -->
+{% for prefix in prefixes %}
+<div class="modal fade" id="editPrefixModal{{ prefix.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Index Prefix</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('update_prefix', prefix_id=prefix.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_prefix_{{ prefix.id }}" class="form-label">Prefix Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_prefix_{{ prefix.id }}" name="prefix" 
+                               value="{{ prefix.prefix }}" required maxlength="10" style="text-transform: uppercase;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description_{{ prefix.id }}" class="form-label">Description <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_description_{{ prefix.id }}" name="description" 
+                               value="{{ prefix.description }}" required>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit_is_active_{{ prefix.id }}" name="is_active" 
+                               {% if prefix.get('is_active', True) %}checked{% endif %}>
+                        <label class="form-check-label" for="edit_is_active_{{ prefix.id }}">
+                            Active (available for student registration)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Prefix</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePrefixModal{{ prefix.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the prefix "<strong>{{ prefix.prefix }}</strong>"?</p>
+                <p class="text-muted">This action cannot be undone. Students using this prefix may not be able to register.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_prefix', prefix_id=prefix.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete Prefix</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+// Convert prefix input to uppercase
+document.querySelectorAll('input[name="prefix"]').forEach(input => {
+    input.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+});
+</script>
+{% endblock %}
