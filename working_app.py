@@ -482,6 +482,75 @@ def delete_user(user_id):
 def about():
     return render_template('about.html')
 
+@app.route('/admin/export-data')
+def export_data():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    from flask import make_response
+    import csv
+    from io import StringIO
+    from datetime import datetime
+
+    try:
+        # Get all issues with user information
+        all_issues = firebase_db.get_issues_with_user_info()
+        
+        # Create CSV content
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['ID', 'Student Name', 'Email', 'Title', 'Description', 'Category', 'Status', 'Created At'])
+        
+        # Write data rows
+        for issue in all_issues:
+            writer.writerow([
+                issue.get('id', ''),
+                issue.get('full_name', ''),
+                issue.get('email', ''),
+                issue.get('title', ''),
+                issue.get('description', ''),
+                issue.get('category', ''),
+                issue.get('status', ''),
+                issue.get('created_at', '')
+            ])
+        
+        output.seek(0)
+        
+        # Create response
+        response = make_response(output.getvalue())
+        response.headers['Content-Disposition'] = f'attachment; filename=ktu_issues_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        response.headers['Content-type'] = 'text/csv'
+        
+        return response
+        
+    except Exception as e:
+        flash('Failed to export data.', 'danger')
+        print(f"Export error: {e}")
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/analytics')
+def admin_analytics():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    # Mock analytics data for template compatibility
+    status_timeline = []
+    response_times = []
+    user_activity = []
+    peak_hours = []
+    category_trends = []
+    
+    return render_template('admin_analytics.html',
+                         status_timeline=status_timeline,
+                         response_times=response_times,
+                         user_activity=user_activity,
+                         peak_hours=peak_hours,
+                         category_trends=category_trends)
+
 @app.route('/logout')
 def logout():
     session.clear()
