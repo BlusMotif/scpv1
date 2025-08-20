@@ -4,11 +4,25 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 import os
 
+def parse_datetime(date_string):
+    """Parse datetime string for template display"""
+    try:
+        if isinstance(date_string, str):
+            dt = datetime.fromisoformat(date_string.replace('Z', '+00:00'))
+            return dt.strftime('%Y-%m-%d %H:%M')
+        return str(date_string)
+    except:
+        return str(date_string)
+
 # Firebase integration
 from firebase_config import RealtimeDB, initialize_firebase
 
 app = Flask(__name__)
 app.secret_key = "student-report-system-firebase-secret-key"
+
+@app.context_processor
+def utility_processor():
+    return dict(parse_datetime=parse_datetime)
 
 # Initialize Firebase and Database
 initialize_firebase()
@@ -141,7 +155,21 @@ def student_dashboard():
         return redirect(url_for('login'))
 
     issues = firebase_db.get_issues(user_id=session['user_id'])
-    return render_template('student_dashboard.html', issues=issues)
+    
+    # Calculate statistics for student dashboard
+    total_issues = len(issues)
+    pending = len([i for i in issues if i.get('status') == 'pending'])
+    in_progress = len([i for i in issues if i.get('status') == 'in_progress'])
+    resolved = len([i for i in issues if i.get('status') == 'resolved'])
+    
+    stats = {
+        'total': total_issues,
+        'pending': pending,
+        'in_progress': in_progress,
+        'resolved': resolved
+    }
+    
+    return render_template('student_dashboard.html', issues=issues, stats=stats)
 
 @app.route('/admin-dashboard')
 def admin_dashboard():
@@ -151,11 +179,49 @@ def admin_dashboard():
 
     # Get statistics
     stats = firebase_db.get_statistics()
+    
+    # Get all users for user statistics
+    all_users = firebase_db.get_all_users()
+    
+    # Calculate user statistics
+    total_users = len(all_users)
+    students = len([u for u in all_users if u.get('role') == 'student'])
+    subadmins = len([u for u in all_users if u.get('role') == 'subadmin'])
+    verified_users = len([u for u in all_users if u.get('is_verified')])
+    
+    user_stats = {
+        'total_users': total_users,
+        'students': students,
+        'subadmins': subadmins,
+        'verified_users': verified_users
+    }
+    
+    # Get all issues for enhanced statistics
+    all_issues = firebase_db.get_issues()
+    
+    # Calculate enhanced stats
+    stats['total'] = len(all_issues)
+    stats['pending'] = len([i for i in all_issues if i.get('status') == 'pending'])
+    stats['in_progress'] = len([i for i in all_issues if i.get('status') == 'in_progress'])
+    stats['resolved'] = len([i for i in all_issues if i.get('status') == 'resolved'])
 
     # Get recent issues with user info
-    recent_issues = firebase_db.get_issues_with_user_info(limit=10)
+    issues = firebase_db.get_issues_with_user_info(limit=20)
+    
+    # Mock data for charts (you can enhance this with real data later)
+    daily_stats = []
+    category_stats = []
+    recent_activities = []
+    notifications = []
 
-    return render_template('admin_dashboard.html', stats=stats, recent_issues=recent_issues)
+    return render_template('admin_dashboard.html', 
+                         stats=stats, 
+                         user_stats=user_stats,
+                         issues=issues,
+                         daily_stats=daily_stats,
+                         category_stats=category_stats,
+                         recent_activities=recent_activities,
+                         notifications=notifications)
 
 @app.route('/subadmin-dashboard')
 def subadmin_dashboard():
@@ -164,7 +230,21 @@ def subadmin_dashboard():
         return redirect(url_for('login'))
 
     issues = firebase_db.get_issues_with_user_info()
-    return render_template('subadmin_dashboard.html', issues=issues)
+    
+    # Calculate statistics for subadmin dashboard
+    total_issues = len(issues)
+    pending_issues = len([i for i in issues if i.get('status') == 'pending'])
+    in_progress_issues = len([i for i in issues if i.get('status') == 'in_progress'])
+    resolved_issues = len([i for i in issues if i.get('status') == 'resolved'])
+    
+    stats = {
+        'total_issues': total_issues,
+        'pending_issues': pending_issues,
+        'in_progress_issues': in_progress_issues,
+        'resolved_issues': resolved_issues
+    }
+    
+    return render_template('subadmin_dashboard.html', issues=issues, stats=stats)
 
 @app.route('/submit-issue', methods=['GET', 'POST'])
 def submit_issue():

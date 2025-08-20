@@ -376,7 +376,7 @@
                         <div class="mt-2 p-3 bg-success bg-opacity-10 rounded">{{ issue.response }}</div>
                     </div>
                     {% endif %}
-                    <form method="POST" action="#">
+                    <form method="POST" action="{{ url_for('update_issue_status', issue_id=issue.id) }}">
                         <div class="row">
                             <div class="col-md-4">
                                 <label class="form-label">Status</label>
@@ -414,7 +414,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form method="POST" action="#" class="d-inline">
+                    <form method="POST" action="{{ url_for('delete_issue', issue_id=issue.id) }}" class="d-inline">
                         <button type="submit" class="btn btn-danger">Delete Issue</button>
                     </form>
                 </div>
