@@ -415,7 +415,19 @@ def system_settings():
         current_settings = {}
         print(f"Error getting settings: {e}")
     
-    return render_template('system_settings.html', settings=current_settings)
+    # Group settings by category for template
+    settings_by_category = {
+        'General': [
+            {'key': 'app_name', 'name': 'Application Name', 'value': current_settings.get('app_name', 'Student Report System'), 'type': 'text'},
+        ],
+        'System': [
+            {'key': 'maintenance_mode', 'name': 'Maintenance Mode', 'value': current_settings.get('maintenance_mode', False), 'type': 'checkbox'},
+            {'key': 'email_notifications', 'name': 'Email Notifications', 'value': current_settings.get('email_notifications', True), 'type': 'checkbox'},
+            {'key': 'max_issues_per_user', 'name': 'Max Issues Per User', 'value': current_settings.get('max_issues_per_user', 10), 'type': 'number'},
+        ]
+    }
+    
+    return render_template('system_settings.html', settings=current_settings, settings_by_category=settings_by_category)
 
 @app.route('/admin/users/update-role/<user_id>', methods=['POST'])
 def update_user_role(user_id):
@@ -455,6 +467,10 @@ def delete_user(user_id):
         print(f"Error deleting user: {e}")
     
     return redirect(url_for('manage_users'))
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 @app.route('/logout')
 def logout():

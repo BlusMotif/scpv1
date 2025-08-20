@@ -1,16 +1,56 @@
+
 {% extends "base.html" %}
 
-{% block title %}About - Koforidua Technical University{% endblock %}
+{% block title %}About - KTU Student Concern Portal{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>About KTU Student Concern Portal</h2>
-    <p>
-        The Koforidua Technical University Student Concern Portal is designed to facilitate communication between students and university administration.
-        It allows students to submit issues or concerns, and enables admins and subadmins to manage and respond to these issues efficiently.
-    </p>
-    <p>
-        This portal aims to improve transparency, responsiveness, and overall student satisfaction by providing a streamlined platform for issue tracking and resolution.
-    </p>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3><i class="fas fa-info-circle me-2"></i>About KTU Student Concern Portal</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" width="100" height="100">
+                </div>
+                
+                <h5>Mission</h5>
+                <p>The KTU Student Concern Portal is designed to provide an efficient and transparent way for students to report issues and concerns to the university administration.</p>
+                
+                <h5>Features</h5>
+                <ul>
+                    <li>Submit and track issues online</li>
+                    <li>Real-time status updates</li>
+                    <li>Multi-level administration system</li>
+                    <li>Secure user authentication</li>
+                    <li>Mobile-friendly interface</li>
+                </ul>
+                
+                <h5>System Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Version:</strong> 2.0<br>
+                        <strong>Technology:</strong> Flask + Firebase<br>
+                        <strong>Developer:</strong> Eleblu Nunana
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Institution:</strong> Koforidua Technical University<br>
+                        <strong>Year:</strong> 2025<br>
+                        <strong>Support:</strong> IT Department
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Empowering student voices through technology
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

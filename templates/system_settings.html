@@ -23,7 +23,8 @@
 
     <form method="POST" action="#">
         <div class="row g-4">
-            {% for category, settings in settings_by_category.items() %}
+            {% if settings_by_category %}
+            {% for category, settings_list in settings_by_category.items() %}
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header">
@@ -46,66 +47,66 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        {% for setting in settings %}
+                        {% for setting in settings_list %}
                         <div class="mb-3">
-                            <label for="setting_{{ setting.key }}" class="form-label">
-                                <strong>{{ setting.key.replace('_', ' ').title() }}</strong>
+                            <label for="{{ setting.key }}" class="form-label">
+                                <strong>{{ setting.name.replace('_', ' ').title() }}</strong>
                                 {% if setting.description %}
                                     <small class="text-muted d-block">{{ setting.description }}</small>
                                 {% endif %}
                             </label>
-                            
+
                             {% if setting.key in ['email_notifications', 'auto_assign_issues', 'maintenance_mode', 'registration_enabled'] %}
                                 <!-- Boolean settings -->
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" 
-                                           id="setting_{{ setting.key }}" 
-                                           name="setting_{{ setting.key }}" 
+                                           id="{{ setting.key }}" 
+                                           name="{{ setting.key }}" 
                                            value="true"
-                                           {% if setting.value.lower() == 'true' %}checked{% endif %}>
-                                    <label class="form-check-label" for="setting_{{ setting.key }}">
-                                        Enable {{ setting.key.replace('_', ' ').title() }}
+                                           {% if setting.value and setting.value.lower() == 'true' %}checked{% endif %}>
+                                    <label class="form-check-label" for="{{ setting.key }}">
+                                        Enable {{ setting.name.replace('_', ' ').title() }}
                                     </label>
                                 </div>
-                                <input type="hidden" name="setting_{{ setting.key }}" value="false">
-                            
+                                <input type="hidden" name="{{ setting.key }}" value="false">
+
                             {% elif setting.key == 'theme_color' %}
                                 <!-- Color picker -->
                                 <div class="input-group">
                                     <input type="color" class="form-control form-control-color" 
-                                           id="setting_{{ setting.key }}" 
-                                           name="setting_{{ setting.key }}" 
+                                           id="{{ setting.key }}" 
+                                           name="{{ setting.key }}" 
                                            value="{{ setting.value }}">
                                     <input type="text" class="form-control" 
                                            value="{{ setting.value }}" 
                                            readonly>
                                 </div>
-                            
+
                             {% elif setting.key in ['issue_categories', 'priority_levels', 'allowed_file_types'] %}
                                 <!-- Comma-separated values -->
                                 <textarea class="form-control" 
-                                          id="setting_{{ setting.key }}" 
-                                          name="setting_{{ setting.key }}" 
+                                          id="{{ setting.key }}" 
+                                          name="{{ setting.key }}" 
                                           rows="3" 
                                           placeholder="Enter values separated by commas">{{ setting.value }}</textarea>
                                 <small class="form-text text-muted">Separate multiple values with commas</small>
-                            
+
                             {% elif setting.key == 'max_file_size' %}
                                 <!-- Number input with unit -->
                                 <div class="input-group">
                                     <input type="number" class="form-control" 
-                                           id="setting_{{ setting.key }}" 
-                                           name="setting_{{ setting.key }}" 
+                                           id="{{ setting.key }}" 
+                                           name="{{ setting.key }}" 
                                            value="{{ setting.value }}" 
                                            min="1" max="100">
                                     <span class="input-group-text">MB</span>
                                 </div>
-                            
+
                             {% else %}
                                 <!-- Regular text input -->
                                 <input type="text" class="form-control" 
-                                       id="setting_{{ setting.key }}" 
-                                       name="setting_{{ setting.key }}" 
+                                       id="{{ setting.key }}" 
+                                       name="{{ setting.key }}" 
                                        value="{{ setting.value }}">
                             {% endif %}
                         </div>
@@ -114,6 +115,63 @@
                 </div>
             </div>
             {% endfor %}
+            {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>General Settings
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="app_name" class="form-label">
+                                <strong>Application Name</strong>
+                                <small class="text-muted d-block">The name of the application.</small>
+                            </label>
+                            <input type="text" class="form-control" id="app_name" name="app_name" 
+                                   value="{{ settings.get('app_name', 'Student Report System') }}">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="maintenance_mode" 
+                                       name="maintenance_mode" 
+                                       value="true"
+                                       {% if settings.get('maintenance_mode') and settings.get('maintenance_mode').lower() == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="maintenance_mode">
+                                    Enable Maintenance Mode
+                                </label>
+                            </div>
+                            <input type="hidden" name="maintenance_mode" value="false">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" 
+                                       name="email_notifications" 
+                                       value="true"
+                                       {% if settings.get('email_notifications', True) and settings.get('email_notifications').lower() == 'true' %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">
+                                    Enable Email Notifications
+                                </label>
+                            </div>
+                            <input type="hidden" name="email_notifications" value="false">
+                        </div>
+                        <div class="mb-3">
+                            <label for="max_issues_per_user" class="form-label">
+                                <strong>Max Issues Per User</strong>
+                                <small class="text-muted d-block">Maximum number of issues a user can be assigned.</small>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="max_issues_per_user" 
+                                       name="max_issues_per_user" value="{{ settings.get('max_issues_per_user', 10) }}" 
+                                       min="1">
+                                <span class="input-group-text">Issues</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Save Button -->
@@ -223,22 +281,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Color picker sync
     const colorInput = document.querySelector('input[type="color"]');
     const colorText = colorInput?.nextElementSibling;
-    
+
     if (colorInput && colorText) {
         colorInput.addEventListener('input', function() {
             colorText.value = this.value;
         });
     }
-    
+
     // Auto-save indication
     const form = document.querySelector('form');
     let hasChanges = false;
-    
+
     form.addEventListener('input', function() {
         hasChanges = true;
         updateSaveButton();
     });
-    
+
     function updateSaveButton() {
         const saveBtn = document.querySelector('button[type="submit"]');
         if (hasChanges) {
@@ -247,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveBtn.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Save Changes';
         }
     }
-    
+
     // Load system info
     loadSystemInfo();
 });
@@ -279,16 +337,16 @@ function exportSettings() {
         const key = input.name.replace('setting_', '');
         settings[key] = input.type === 'checkbox' ? input.checked : input.value;
     });
-    
+
     const dataStr = JSON.stringify(settings, null, 2);
     const dataBlob = new Blob([dataStr], {type: 'application/json'});
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = 'ktu_system_settings_' + new Date().toISOString().split('T')[0] + '.json';
     link.click();
-    
+
     URL.revokeObjectURL(url);
     showToast('Settings exported successfully', 'info');
 }
@@ -296,13 +354,13 @@ function exportSettings() {
 function showConfirmModal(title, message, callback) {
     document.getElementById('confirmModal').querySelector('.modal-title').textContent = title;
     document.getElementById('confirmMessage').textContent = message;
-    
+
     const confirmBtn = document.getElementById('confirmButton');
     confirmBtn.onclick = function() {
         callback();
         bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
     };
-    
+
     new bootstrap.Modal(document.getElementById('confirmModal')).show();
 }
 
@@ -315,9 +373,9 @@ function showToast(message, type = 'info') {
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (toast.parentNode) {
@@ -398,7 +456,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     .dashboard-container {
         padding: 1rem;
     }
-    
+
     .header-actions {
         margin-top: 1rem;
     }
@@ -421,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         currentTimeElement.textContent = now.toLocaleDateString('en-US', options);
     }
-    
+
     // Simulate storage calculation
     const storageElement = document.getElementById('storageUsed');
     if (storageElement) {
@@ -429,7 +487,7 @@ document.addEventListener('DOMContentLoaded', function() {
             storageElement.innerHTML = '<span class="badge bg-info">2.3 MB</span>';
         }, 1000);
     }
-    
+
     // Simulate active sessions
     const sessionsElement = document.getElementById('activeSessions');
     if (sessionsElement) {

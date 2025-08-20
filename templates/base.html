@@ -20,38 +20,38 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                {% if g.user %}
+                {% if session.user_id %}
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user me-1"></i>{{ g.user.username }}
+                            <i class="fas fa-user me-1"></i>{{ session.user_name or session.user_email }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            {% if g.user.role == 'student' %}
+                            {% if session.user_role == 'student' %}
                             <li><a class="dropdown-item" href="{{ url_for('student_dashboard') }}">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('settings') }}">
-                                <i class="fas fa-cog me-2"></i>Settings
-                            </a></li>
-                            {# <li><a class="dropdown-item" href="{{ url_for('submit_issue') }}">
+                            <li><a class="dropdown-item" href="{{ url_for('submit_issue') }}">
                                 <i class="fas fa-plus me-2"></i>Submit Issue
-                            </a></li> #}
-                            {# <li><a class="dropdown-item" href="{{ url_for('my_issues') }}">
-                                <i class="fas fa-list me-2"></i>My Submissions
-                            </a></li> #}
-                            {% elif g.user.role == 'admin' %}
-                            {# <li><a class="dropdown-item" href="{{ url_for('admin_issues') }}">
-                                <i class="fas fa-cogs me-2"></i>Manage Issues
-                            </a></li> #}
-                            <li><a class="dropdown-item" href="{{ url_for('admin.admin_settings') }}">
-                                <i class="fas fa-cog me-2"></i>Settings
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('my_issues') }}">
+                                <i class="fas fa-list me-2"></i>My Issues
+                            </a></li>
+                            {% elif session.user_role == 'subadmin' %}
+                            <li><a class="dropdown-item" href="{{ url_for('subadmin_dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a></li>
+                            {% elif session.user_role == 'supa_admin' %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('manage_users') }}">
+                                <i class="fas fa-users me-2"></i>Manage Users
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('system_settings') }}">
+                                <i class="fas fa-cog me-2"></i>System Settings
                             </a></li>
                             {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('about') }}">
-                                <i class="fas fa-info-circle me-2"></i>About
-                            </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout
