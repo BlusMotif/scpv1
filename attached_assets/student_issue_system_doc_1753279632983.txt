@@ -1,0 +1,52 @@
+
+University Student Issue Reporting System
+-----------------------------------------
+
+Objective:
+A simple system for university students to report issues to the Dean of Students, HOD, or Admin.
+
+Users:
+1. Student
+2. Admin (Dean, HOD)
+
+Technology:
+- Python with Flask
+- SQLite database
+- HTML/CSS for frontend (Bootstrap for styling)
+- Session-based login
+
+Features:
+
+Student:
+- Login
+- Submit issues (subject, category, message)
+- View submitted issues and their status
+
+Admin:
+- Login
+- View all submitted issues
+- Mark issues as "resolved" or "in progress"
+- Optional: reply to issues
+
+Pages/Routes:
+- /           -> Login page
+- /login      -> Handle login
+- /dashboard  -> Redirect to appropriate dashboard
+- /submit-issue -> Student issue submission form
+- /my-issues  -> Student view of submitted issues
+- /admin/issues -> Admin view of all issues
+- /admin/resolve/<id> -> Update status of an issue
+- /logout     -> Logout user
+
+Database Tables:
+
+users
+- id, username, password, role (student/admin)
+
+issues
+- id, student_id, subject, category, message, status, response, created_at
+
+Instructions for Replit AI:
+Build this using Flask and SQLite.
+Include login system, student issue submission, and admin management panel.
+Keep it simple and web-app based.

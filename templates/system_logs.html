@@ -1,0 +1,521 @@
+{% extends "base.html" %}
+
+{% block title %}System Logs - KTU Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- System Logs Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">
+                    <i class="fas fa-file-alt me-3"></i>System Activity Logs
+                </h1>
+                <p class="dashboard-subtitle text-muted">Monitor all administrative activities and system events</p>
+            </div>
+            <div class="header-actions d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <button class="btn btn-outline-secondary" onclick="exportLogs()">
+                    <i class="fas fa-download me-2"></i>Export Logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ total_logs }}</h3>
+                        <p>Total Log Entries</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="todayLogs">-</h3>
+                        <p>Today's Activities</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="activeAdmins">-</h3>
+                        <p>Active Admins</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="lastActivity">-</h3>
+                        <p>Last Activity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Action</label>
+                    <select class="form-select" id="actionFilter" onchange="applyFilters()">
+                        <option value="">All Actions</option>
+                        <option value="login">Login</option>
+                        <option value="create_subadmin">Create Sub Admin</option>
+                        <option value="update_system_settings">Update Settings</option>
+                        <option value="export_data">Export Data</option>
+                        <option value="delete_subadmin">Delete Sub Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Admin</label>
+                    <select class="form-select" id="adminFilter" onchange="applyFilters()">
+                        <option value="">All Admins</option>
+                        {% for log in logs %}
+                            <option value="{{ log.admin_name }}">{{ log.admin_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <select class="form-select" id="dateFilter" onchange="applyFilters()">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times me-2"></i>Clear Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Logs Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Activity Log Entries
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if logs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="logsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Admin</th>
+                            <th>Action</th>
+                            <th>Target</th>
+                            <th>Details</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr data-action="{{ log.action }}" data-admin="{{ log.admin_name }}" data-date="{{ log.created_at }}">
+                            <td>
+                                <div class="timestamp">
+                                    <strong>{{ log.created_at.split(' ')[1] if ' ' in log.created_at else log.created_at }}</strong>
+                                    <br><small class="text-muted">{{ log.created_at.split(' ')[0] if ' ' in log.created_at else '' }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="admin-info">
+                                    <div class="avatar-circle me-2">
+                                        {{ log.admin_name[0].upper() if log.admin_name else 'A' }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ log.admin_name or 'Unknown' }}</strong>
+                                        <br><small class="text-muted">{{ log.username or 'N/A' }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="action-badge action-{{ log.action }}">
+                                    {% if log.action == 'login' %}
+                                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                                    {% elif log.action == 'create_subadmin' %}
+                                        <i class="fas fa-user-plus me-1"></i>Create Sub Admin
+                                    {% elif log.action == 'update_system_settings' %}
+                                        <i class="fas fa-cogs me-1"></i>Update Settings
+                                    {% elif log.action == 'export_data' %}
+                                        <i class="fas fa-download me-1"></i>Export Data
+                                    {% elif log.action == 'delete_subadmin' %}
+                                        <i class="fas fa-user-times me-1"></i>Delete Sub Admin
+                                    {% else %}
+                                        <i class="fas fa-cog me-1"></i>{{ log.action.replace('_', ' ').title() }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if log.target_type and log.target_id %}
+                                    <span class="badge bg-secondary">{{ log.target_type }} #{{ log.target_id }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="details-cell">
+                                    {{ log.details or 'No details available' }}
+                                </div>
+                            </td>
+                            <td>
+                                <code class="ip-address">{{ log.ip_address or 'Unknown' }}</code>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="card-footer">
+                <nav aria-label="Log pagination">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ p }}</span>
+                            </li>
+                            {% elif p <= 3 or p >= total_pages - 2 or (p >= page - 1 and p <= page + 1) %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                            </li>
+                            {% elif p == 4 or p == total_pages - 3 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                    <h4>No Log Entries Found</h4>
+                    <p class="text-muted">System activity logs will appear here as admins perform actions.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Calculate statistics
+document.addEventListener('DOMContentLoaded', function() {
+    calculateLogStats();
+    
+    // Remove duplicate admin options
+    const adminFilter = document.getElementById('adminFilter');
+    const uniqueAdmins = [...new Set(Array.from(adminFilter.options).map(opt => opt.value))];
+    adminFilter.innerHTML = '<option value="">All Admins</option>';
+    uniqueAdmins.filter(admin => admin).forEach(admin => {
+        const option = document.createElement('option');
+        option.value = admin;
+        option.textContent = admin;
+        adminFilter.appendChild(option);
+    });
+});
+
+function calculateLogStats() {
+    const rows = document.querySelectorAll('#logsTable tbody tr');
+    const today = new Date().toISOString().split('T')[0];
+    
+    let todayCount = 0;
+    let activeAdmins = new Set();
+    let lastActivityTime = null;
+    
+    rows.forEach(row => {
+        const dateCell = row.querySelector('td:first-child small');
+        const adminCell = row.querySelector('td:nth-child(2) strong');
+        const timestampCell = row.querySelector('td:first-child strong');
+        
+        if (dateCell && dateCell.textContent.includes(today)) {
+            todayCount++;
+        }
+        
+        if (adminCell) {
+            activeAdmins.add(adminCell.textContent);
+        }
+        
+        if (!lastActivityTime && timestampCell) {
+            lastActivityTime = timestampCell.textContent;
+        }
+    });
+    
+    document.getElementById('todayLogs').textContent = todayCount;
+    document.getElementById('activeAdmins').textContent = activeAdmins.size;
+    document.getElementById('lastActivity').textContent = lastActivityTime || 'N/A';
+}
+
+function applyFilters() {
+    const actionFilter = document.getElementById('actionFilter').value;
+    const adminFilter = document.getElementById('adminFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    const rows = document.querySelectorAll('#logsTable tbody tr');
+    
+    const today = new Date();
+    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Action filter
+        if (actionFilter && row.getAttribute('data-action') !== actionFilter) {
+            show = false;
+        }
+        
+        // Admin filter
+        if (adminFilter && row.getAttribute('data-admin') !== adminFilter) {
+            show = false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const rowDate = new Date(row.getAttribute('data-date'));
+            switch (dateFilter) {
+                case 'today':
+                    if (rowDate.toDateString() !== today.toDateString()) show = false;
+                    break;
+                case 'week':
+                    if (rowDate < weekAgo) show = false;
+                    break;
+                case 'month':
+                    if (rowDate < monthAgo) show = false;
+                    break;
+            }
+        }
+        
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function clearFilters() {
+    document.getElementById('actionFilter').value = '';
+    document.getElementById('adminFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    applyFilters();
+}
+
+function exportLogs() {
+    const rows = document.querySelectorAll('#logsTable tbody tr:not([style*="display: none"])');
+    const csvContent = ['Timestamp,Admin,Action,Target,Details,IP Address'];
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = [
+            cells[0].textContent.trim().replace(/\n/g, ' '),
+            cells[1].textContent.trim().replace(/\n/g, ' '),
+            cells[2].textContent.trim(),
+            cells[3].textContent.trim(),
+            cells[4].textContent.trim(),
+            cells[5].textContent.trim()
+        ];
+        csvContent.push(rowData.map(cell => `"${cell}"`).join(','));
+    });
+    
+    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `system_logs_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    if (document.visibilityState === 'visible') {
+        location.reload();
+    }
+}, 30000);
+</script>
+
+<style>
+.dashboard-container {
+    padding: 2rem;
+}
+
+.dashboard-title {
+    color: #1e3a8a;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stat-card {
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+}
+
+.stat-details h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stat-details p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+}
+
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #1e3a8a;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.action-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.action-login { background-color: #dbeafe; color: #1e40af; }
+.action-create_subadmin { background-color: #dcfce7; color: #166534; }
+.action-update_system_settings { background-color: #fef3c7; color: #92400e; }
+.action-export_data { background-color: #e0e7ff; color: #3730a3; }
+.action-delete_subadmin { background-color: #fecaca; color: #991b1b; }
+
+.details-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ip-address {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    background-color: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.timestamp {
+    min-width: 120px;
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .header-actions {
+        margin-top: 1rem;
+    }
+    
+    .admin-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .details-cell {
+        max-width: 150px;
+    }
+}
+</style>
+
+{% endblock %}

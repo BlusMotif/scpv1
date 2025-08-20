@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}Sub-Admin Dashboard - KTU{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">
+                    <i class="fas fa-tachometer-alt me-3"></i>Sub-Admin Dashboard
+                </h1>
+                <p class="dashboard-subtitle text-muted">Manage student issues and concerns</p>
+            </div>
+            <div class="header-actions">
+                <span class="badge bg-primary fs-6">{{ g.user.full_name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ stats.total_issues }}</h3>
+                        <p>Total Student Issues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ stats.pending }}</h3>
+                        <p>Pending Issues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ stats.in_progress }}</h3>
+                        <p>In Progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ stats.resolved }}</h3>
+                        <p>Resolved Issues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Student Issues -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Recent Student Issues
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_issues %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in recent_issues %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ issue.full_name }}</strong><br>
+                                            <small class="text-muted">{{ issue.index_number }}</small>
+                                        </div>
+                                    </td>
+                                    <td>{{ issue.subject[:50] }}{% if issue.subject|length > 50 %}...{% endif %}</td>
+                                    <td><span class="badge bg-secondary">{{ issue.category }}</span></td>
+                                    <td>
+                                        {% if issue.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif issue.status == 'in_progress' %}
+                                            <span class="badge bg-info">In Progress</span>
+                                        {% elif issue.status == 'resolved' %}
+                                            <span class="badge bg-success">Resolved</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ issue.created_at[:10] }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewIssue({{ issue.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if issue.status != 'resolved' %}
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                onclick="resolveIssue({{ issue.id }})">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No student issues found</h5>
+                        <p class="text-muted">Student issues will appear here when submitted</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Statistics -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Issues by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if category_stats %}
+                    {% for category in category_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="badge bg-primary">{{ category.category }}</span>
+                        </div>
+                        <div>
+                            <span class="fw-bold">{{ category.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No category data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-download me-2"></i>Export Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Issue Modal -->
+<div class="modal fade" id="viewIssueModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Issue Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="issueDetails">
+                <!-- Issue details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resolve Issue Modal -->
+<div class="modal fade" id="resolveIssueModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolve Issue</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="resolveIssueForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" name="status" required>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="response" class="form-label">Response</label>
+                        <textarea class="form-control" name="response" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Issue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewIssue(issueId) {
+    // Load issue details via AJAX
+    fetch(`/admin/issue/${issueId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('issueDetails').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Student:</strong> ${data.full_name}<br>
+                        <strong>Index:</strong> ${data.index_number}<br>
+                        <strong>Email:</strong> ${data.email}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Category:</strong> ${data.category}<br>
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Date:</strong> ${data.created_at}
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <strong>Subject:</strong> ${data.subject}
+                </div>
+                <div class="mt-3">
+                    <strong>Message:</strong><br>
+                    ${data.message}
+                </div>
+                ${data.response ? `<div class="mt-3"><strong>Response:</strong><br>${data.response}</div>` : ''}
+            `;
+            new bootstrap.Modal(document.getElementById('viewIssueModal')).show();
+        });
+}
+
+function resolveIssue(issueId) {
+    document.getElementById('resolveIssueForm').action = `/admin/resolve-issue/${issueId}`;
+    new bootstrap.Modal(document.getElementById('resolveIssueModal')).show();
+}
+</script>
+
+<style>
+.dashboard-container {
+    padding: 2rem;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.stat-card {
+    border-radius: 1rem;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card-content {
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.stat-details h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-details p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 1.5rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .stat-card-content {
+        padding: 1.5rem;
+    }
+    
+    .stat-details h3 {
+        font-size: 2rem;
+    }
+}
+</style>
+
+{% endblock %}

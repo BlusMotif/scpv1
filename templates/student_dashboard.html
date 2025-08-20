@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Koforidua Technical University{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-title">
+                <i class="fas fa-tachometer-alt me-3"></i>Student Dashboard
+            </h1>
+            <p class="dashboard-subtitle text-muted d-block d-md-none">Manage and track your reported issues</p>
+        </div>
+        <a href="{{ url_for('submit_issue') }}" class="btn btn-primary btn-lg mt-3">
+            <i class="fas fa-plus me-2"></i>New Submissions
+        </a>
+    <!-- Removed settings button as requested -->
+</div>
+<!-- Removed mobile direct settings button to avoid duplication with dropdown -->
+
+    <!-- Modern Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card pending-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-number">{{ stats.pending }}</h3>
+                        <p class="stat-label">Pending Submittions</p>
+                    </div>
+                </div>
+                <div class="stat-card-footer">
+                    <small class="text-muted">Awaiting review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card progress-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-cog fa-spin"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-number">{{ stats.in_progress }}</h3>
+                        <p class="stat-label">In Progress</p>
+                    </div>
+                </div>
+                <div class="stat-card-footer">
+                    <small class="text-muted">Being processed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card resolved-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 class="stat-number">{{ stats.resolved }}</h3>
+                        <p class="stat-label">Resolved</p>
+                    </div>
+                </div>
+                <div class="stat-card-footer">
+                    <small class="text-muted">Successfully completed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Issues Section -->
+    <div class="recent-issues-section">
+        <div class="section-header">
+            <h3 class="section-title">Latest Submittions</h3>
+            <a href="{{ url_for('my_issues') }}" class="btn btn-outline-primary">
+                <i class="fas fa-list me-2"></i>View All Submittions
+            </a>
+        </div>
+        
+        <div class="modern-card">
+            {% if recent_issues %}
+                <div class="issues-grid">
+                    {% for issue in recent_issues %}
+                    <div class="issue-item">
+                        <div class="issue-header">
+                            <h5 class="issue-title">{{ issue.subject }}</h5>
+                            <div class="issue-actions">
+                                {% if issue.status == 'pending' %}
+                                    <span class="status-badge pending">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% elif issue.status == 'in_progress' %}
+                                    <span class="status-badge progress">
+                                        <i class="fas fa-cog me-1"></i>In Progress
+                                    </span>
+                                {% elif issue.status == 'resolved' %}
+                                    <span class="status-badge resolved">
+                                        <i class="fas fa-check-circle me-1"></i>Resolved
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="issue-meta">
+                            <span class="category-tag">{{ issue.category }}</span>
+                            <span class="issue-date">{{ parse_datetime(issue.created_at).split(' at')[0] if issue.created_at else 'N/A' }}</span>
+                        </div>
+                        <p class="issue-preview">{{ issue.message[:100] }}{% if issue.message|length > 100 %}...{% endif %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h4>No Issues Yet</h4>
+                    <p class="text-muted">You haven't submitted any issues. Get started by reporting your first concern.</p>
+                    {# <a href="{{ url_for('submit_issue') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Submit First Issue
+                    </a> #}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

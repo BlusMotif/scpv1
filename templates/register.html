@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+
+{% block title %}Join CS Department - KTU{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Left Side - Branding/Image -->
+            <div class="col-lg-6 d-none d-lg-flex login-left-panel">
+                <div class="login-branding">
+                    <div class="branding-content">
+                        <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="main-logo">
+                        <h2 class="university-title">KOFORIDUA TECHNICAL UNIVERSITY</h2>
+                        <p class="university-subtitle">INNOVATING FOR DEVELOPMENT.</p>
+                        <div class="decorative-elements">
+                            <div class="element element-1"></div>
+                            <div class="element element-2"></div>
+                            <div class="element element-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side - Registration Form -->
+            <div class="col-lg-6 login-right-panel">
+                <div class="login-form-container">
+                    <div class="login-header text-center mb-4">
+                        <!-- Mobile Logo -->
+                        <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="mobile-logo d-lg-none mb-3">
+                        <h3 class="login-title">Create Your Account</h3>
+                        <p class="login-subtitle text-muted">Join the Student Concern Portal</p>
+                    </div>
+
+                    <div class="login-form">
+                        <form method="POST">
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="Username" required minlength="3" maxlength="20">
+                                <label for="username">
+                                    <i class="fas fa-user me-2"></i>Username
+                                </label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Email" required>
+                                <label for="email">
+                                    <i class="fas fa-envelope me-2"></i>Institutional Email
+                                </label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="full_name" name="full_name" 
+                                       placeholder="Full Name" required>
+                                <label for="full_name">
+                                    <i class="fas fa-id-card me-2"></i>Full Name
+                                </label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="index_number" name="index_number" 
+                                       placeholder="Index Number" required pattern="CS[A-Z]?\d{3,}">
+                                <label for="index_number">
+                                    <i class="fas fa-hashtag me-2"></i>Index Number
+                                </label>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="level" name="level" required>
+                                            <option value="">Select Level</option>
+                                            <option value="Level 100">Level 100</option>
+                                            <option value="Level 200">Level 200</option>
+                                            <option value="Level 300">Level 300</option>
+                                            <option value="Level 400">Level 400</option>
+                                        </select>
+                                        <label for="level">
+                                            <i class="fas fa-graduation-cap me-2"></i>Academic Level
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Password" required minlength="6">
+                                <label for="password">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                            </div>
+
+                            <div class="form-floating mb-4">
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                       placeholder="Confirm Password" required>
+                                <label for="confirm_password">
+                                    <i class="fas fa-lock me-2"></i>Confirm Password
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 login-submit-btn">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </form>
+                        
+                        <div class="login-divider">
+                            <span>or</span>
+                        </div>
+                        
+                        <div class="alternative-actions text-center">
+                            <p class="mb-0">Already have an account?</p>
+                            <a href="{{ url_for('login') }}" class="contact-admin">Sign In</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.register-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.register-wrapper {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1000px;
+    width: 100%;
+    min-height: 700px;
+}
+
+/* Welcome Section */
+.welcome-section {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #059669 100%);
+    color: white;
+    padding: 60px 40px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.welcome-content {
+    position: relative;
+    z-index: 2;
+}
+
+.logo-section {
+    margin-bottom: 40px;
+}
+
+.welcome-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 20px;
+    filter: brightness(0) invert(1);
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.highlight {
+    background: linear-gradient(45deg, #f59e0b, #ff6b35);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin-bottom: 40px;
+}
+
+.features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+}
+
+/* Form Section */
+.form-section {
+    padding: 60px 40px;
+    display: flex;
+    align-items: center;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.form-header h2 {
+    font-size: 2rem;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.form-header p {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 20px 0 8px 0;
+    border: none;
+    border-bottom: 2px solid #e5e7eb;
+    background: transparent;
+    font-size: 1rem;
+    color: #1f2937;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.input-wrapper input:focus {
+    border-bottom-color: #1e3a8a;
+}
+
+.input-wrapper input:focus + label,
+.input-wrapper input:valid + label {
+    transform: translateY(-20px) scale(0.85);
+    color: #1e3a8a;
+}
+
+.input-wrapper label {
+    position: absolute;
+    left: 0;
+    top: 15px;
+    color: #6b7280;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    transform-origin: left top;
+}
+
+.input-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(45deg, #1e3a8a, #2563eb);
+    transition: width 0.3s ease;
+}
+
+.input-wrapper input:focus ~ .input-line {
+    width: 100%;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    width: 100%;
+    padding: 20px 0 8px 0;
+    border: none;
+    border-bottom: 2px solid #e5e7eb;
+    background: transparent;
+    font-size: 1rem;
+    color: #1f2937;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.select-wrapper select:focus {
+    border-bottom-color: #1e3a8a;
+}
+
+.select-wrapper select:focus + label,
+.select-wrapper select:valid + label {
+    transform: translateY(-20px) scale(0.85);
+    color: #1e3a8a;
+}
+
+.select-wrapper label {
+    position: absolute;
+    left: 0;
+    top: 15px;
+    color: #6b7280;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    transform-origin: left top;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.helper-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: block;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0;
+    top: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #6b7280;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #1e3a8a;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(30, 58, 138, 0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+.btn-loader {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.form-footer p {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.login-link {
+    color: #1e3a8a;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.login-link:hover {
+    color: #1e40af;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .register-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+    }
+    
+    .welcome-section {
+        padding: 40px 30px;
+        text-align: center;
+    }
+    
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+    
+    .form-section {
+        padding: 40px 30px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-container {
+        padding: 10px;
+    }
+    
+    .welcome-section,
+    .form-section {
+        padding: 30px 20px;
+    }
+    
+    .form-header h2 {
+        font-size: 1.75rem;
+    }
+}
+</style>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const toggle = field.nextElementSibling.nextElementSibling;
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        toggle.innerHTML = '<span class="eye-icon">🙈</span>';
+    } else {
+        field.type = 'password';
+        toggle.innerHTML = '<span class="eye-icon">👁️</span>';
+    }
+}
+
+// Form validation and animation
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('.submit-btn');
+    const btnText = submitBtn.querySelector('span');
+    const btnLoader = submitBtn.querySelector('.btn-loader');
+    
+    // Show loading state
+    btnText.style.display = 'none';
+    btnLoader.style.display = 'inline-block';
+    submitBtn.disabled = true;
+    
+    // Reset after form submission (in case of validation errors)
+    setTimeout(() => {
+        btnText.style.display = 'inline';
+        btnLoader.style.display = 'none';
+        submitBtn.disabled = false;
+    }, 3000);
+});
+
+// Enhanced input animations
+document.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('focused');
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Sub Admins - KTU Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sub Admin Management Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">
+                    <i class="fas fa-users-cog me-3"></i>Manage Sub Admins
+                </h1>
+                <p class="dashboard-subtitle text-muted">Create, manage, and monitor sub-administrator accounts</p>
+            </div>
+            <div class="header-actions d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <a href="{{ url_for('admin_create_subadmin') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Create Sub Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub Admin Statistics -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ subadmins|length }}</h3>
+                        <p>Total Sub Admins</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ subadmins|selectattr('is_active')|list|length }}</h3>
+                        <p>Active Sub Admins</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ subadmins|sum(attribute='assigned_issues') }}</h3>
+                        <p>Total Assigned Issues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-card-content">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3>{{ subadmins|selectattr('last_login')|list|length }}</h3>
+                        <p>Recently Active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub Admin List -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>Sub Administrator Accounts
+                </h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="filterSubAdmins('all')">All Sub Admins</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterSubAdmins('active')">Active Only</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="filterSubAdmins('inactive')">Inactive Only</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if subadmins %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="subadminsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sub Admin</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Assigned Issues</th>
+                            <th>Last Login</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subadmin in subadmins %}
+                        <tr data-status="{{ 'active' if subadmin.is_active else 'inactive' }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        {{ subadmin.full_name[0].upper() }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ subadmin.full_name }}</strong>
+                                        <br><small class="text-muted">@{{ subadmin.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="fas fa-envelope me-1"></i>{{ subadmin.email }}
+                                    <br><small class="text-muted">
+                                        <i class="fas fa-sign-in-alt me-1"></i>{{ subadmin.login_count or 0 }} logins
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if subadmin.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ subadmin.assigned_issues or 0 }}</span>
+                            </td>
+                            <td>
+                                {% if subadmin.last_login %}
+                                    <small>{{ subadmin.last_login }}</small>
+                                {% else %}
+                                    <small class="text-muted">Never</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ subadmin.created_at }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewSubAdminModal{{ subadmin.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <form method="POST" action="#" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-{{ 'warning' if subadmin.is_active else 'success' }}">
+                                            <i class="fas fa-{{ 'pause' if subadmin.is_active else 'play' }}"></i>
+                                        </button>
+                                    </form>
+                                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSubAdminModal{{ subadmin.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="empty-state">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h4>No Sub Admins Found</h4>
+                    <p class="text-muted">Create your first sub-administrator to help manage the system.</p>
+                    <a href="{{ url_for('admin_create_subadmin') }}" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-2"></i>Create Sub Admin
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    {% if activities %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-history me-2"></i>Recent Sub Admin Activities
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="activity-timeline">
+                {% for activity in activities %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p class="mb-1">
+                            <strong>{{ activity.username }}</strong> {{ activity.action.replace('_', ' ').title() }}
+                        </p>
+                        <small class="text-muted">
+                            {{ activity.created_at }} • {{ activity.details or 'No details' }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sub Admin Modals -->
+{% for subadmin in subadmins %}
+<!-- View Sub Admin Modal -->
+<div class="modal fade" id="viewSubAdminModal{{ subadmin.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sub Admin Details - {{ subadmin.full_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Full Name</label>
+                            <p>{{ subadmin.full_name }}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Username</label>
+                            <p>{{ subadmin.username }}</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Email</label>
+                            <p>{{ subadmin.email }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Status</label>
+                            <p>
+                                {% if subadmin.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="info-group">
+                            <label>Assigned Issues</label>
+                            <p>{{ subadmin.assigned_issues or 0 }} issues</p>
+                        </div>
+                        <div class="info-group">
+                            <label>Login Count</label>
+                            <p>{{ subadmin.login_count or 0 }} times</p>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Created</label>
+                            <p>{{ subadmin.created_at }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-group">
+                            <label>Last Login</label>
+                            <p>{{ subadmin.last_login or 'Never' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form method="POST" action="#" class="d-inline">
+                    <button type="submit" class="btn btn-{{ 'warning' if subadmin.is_active else 'success' }}">
+                        {{ 'Deactivate' if subadmin.is_active else 'Activate' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Sub Admin Modal -->
+<div class="modal fade" id="deleteSubAdminModal{{ subadmin.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Sub Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone!
+                </div>
+                <p>Are you sure you want to delete the sub-admin account for <strong>{{ subadmin.full_name }}</strong>?</p>
+                <p class="text-muted">This will:</p>
+                <ul class="text-muted">
+                    <li>Permanently delete the sub-admin account</li>
+                    <li>Unassign any issues currently assigned to them</li>
+                    <li>Remove their access to the admin panel</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('admin.delete_subadmin', subadmin_id=subadmin.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Delete Sub Admin
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function filterSubAdmins(status) {
+    const table = document.getElementById('subadminsTable');
+    if (!table) return;
+    
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const rowStatus = row.getAttribute('data-status');
+        if (status === 'all' || rowStatus === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    }
+    
+    // Update dropdown button text
+    event.target.closest('.dropdown').querySelector('.dropdown-toggle').innerHTML = 
+        '<i class="fas fa-filter me-2"></i>' + event.target.textContent;
+}
+
+// Auto-refresh page every 5 minutes to show updated login times
+setTimeout(() => {
+    location.reload();
+}, 300000);
+</script>
+
+<style>
+.dashboard-container {
+    padding: 2rem;
+}
+
+.dashboard-title {
+    color: #1e3a8a;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stat-card {
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+}
+
+.stat-details h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.stat-details p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #1e3a8a;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.activity-timeline {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: #6b7280;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.info-group {
+    margin-bottom: 1rem;
+}
+
+.info-group label {
+    font-weight: bold;
+    color: #374151;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.info-group p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .header-actions {
+        margin-top: 1rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+
+{% endblock %}

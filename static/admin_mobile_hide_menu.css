@@ -1,0 +1,16 @@
+@media (max-width: 768px) {
+    .header-actions {
+        display: none !important;
+    }
+    /* Make notification card fill horizontal space fully on mobile and center it */
+    .dashboard-container .row.g-4.mb-5 > .notification-card {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-right: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}

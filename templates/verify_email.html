@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Email - CS Department{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <img src="{{ url_for('static', filename='ktu-logo.png') }}" alt="KTU Logo" class="auth-logo">
+            <h2>Email Verification</h2>
+            <p>We've sent a verification code to your email</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="Enter your email address">
+            </div>
+            
+            <div class="form-group">
+                <label for="verification_code">Verification Code</label>
+                <input type="text" id="verification_code" name="verification_code" required 
+                       placeholder="Enter 6-digit code" pattern="\d{6}" maxlength="6">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">Verify Email</button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Didn't receive the code? <a href="{{ url_for('resend_verification') }}">Resend</a></p>
+            <p><a href="{{ url_for('register') }}">Back to registration</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.auth-header {
+    margin-bottom: 30px;
+}
+
+.auth-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}
+
+.btn-block {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+}
+</style>
+{% endblock %}

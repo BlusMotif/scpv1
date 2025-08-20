@@ -1,0 +1,986 @@
+/* Toggle icon rotation for collapsible admin issue cards */
+
+:root {
+    --ktu-primary: #1e3a8a;
+    --ktu-secondary: #f59e0b;
+    --ktu-accent: #059669;
+    --ktu-orange: #ff6b35;
+    --ktu-blue: #1a365d;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Custom button styles */
+.btn-primary {
+    background-color: var(--ktu-primary);
+    border-color: var(--ktu-primary);
+}
+
+.btn-primary:hover {
+    background-color: #1e40af;
+    border-color: #1e40af;
+}
+
+/* Navbar customization */
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Status badges */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: var(--ktu-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--ktu-primary);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 138, 0.25);
+}
+
+/* Input group styles */
+.input-group-text {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #6c757d;
+}
+
+/* Alert customization */
+.alert {
+    border: none;
+    border-radius: 6px;
+}
+
+/* Table improvements */
+.table-hover tbody tr:hover {
+    background-color: rgba(30, 58, 138, 0.05);
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Loading and hover effects */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Empty state styling */
+.text-muted i {
+    opacity: 0.6;
+}
+
+/* Dashboard cards specific styling */
+.bg-warning {
+    background-color: #f59e0b !important;
+}
+
+.bg-info {
+    background-color: #0ea5e9 !important;
+}
+
+.bg-success {
+    background-color: var(--ktu-accent) !important;
+}
+
+/* Form validation styles */
+.was-validated .form-control:valid {
+    border-color: var(--ktu-accent);
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+/* Animation for page transitions */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Custom dropdown styling */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(30, 58, 138, 0.1);
+    color: var(--ktu-primary);
+}
+
+/* Modern Split-Screen Login Design */
+.login-page {
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.login-page .container-fluid {
+    height: 100vh;
+}
+
+/* Left Panel - Branding */
+.login-left-panel {
+    background: linear-gradient(135deg, var(--ktu-primary) 0%, #2563eb 50%, var(--ktu-accent) 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.login-branding {
+    text-align: center;
+    color: white;
+    z-index: 2;
+    position: relative;
+}
+
+.main-logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 2rem;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.university-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.university-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Decorative Elements */
+.decorative-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.element {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 6s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    bottom: 20%;
+    right: -5%;
+    animation-delay: 2s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    top: 60%;
+    left: 80%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Right Panel - Login Form */
+.login-right-panel {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-height: 100vh; /* Ensure full height for vertical centering */
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 400px;
+    animation: fadeInRight 0.8s ease-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically center form content */
+    height: 100%;
+}
+
+.login-form .form-floating {
+    margin-bottom: 1.5rem; /* Increase spacing between inputs */
+}
+
+.login-submit-btn {
+    margin-top: 1rem; /* Add top margin for button */
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 400px;
+    animation: fadeInRight 0.8s ease-out;
+}
+
+.mobile-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    padding: 10px;
+    background: rgba(30, 58, 138, 0.1);
+}
+
+.login-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ktu-primary);
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Form Floating Labels */
+.form-floating > .form-control {
+    height: 58px;
+    padding: 1rem 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--ktu-primary);
+    box-shadow: 0 0 0 0.25rem rgba(30, 58, 138, 0.15);
+}
+
+.form-floating > label {
+    padding: 1rem 0.75rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    color: var(--ktu-primary);
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+/* Remember Me and Forgot Password */
+.form-check-input:checked {
+    background-color: var(--ktu-primary);
+    border-color: var(--ktu-primary);
+}
+
+.forgot-password {
+    color: var(--ktu-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+/* Login Button */
+.login-submit-btn {
+    background: linear-gradient(135deg, var(--ktu-primary) 0%, #2563eb 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 0.875rem 2rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+}
+
+.login-submit-btn:hover {
+    background: linear-gradient(135deg, #1e40af 0%, var(--ktu-primary) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(30, 58, 138, 0.4);
+}
+
+/* Divider */
+.login-divider {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.login-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e9ecef;
+}
+
+.login-divider span {
+    background: white;
+    padding: 0 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Alternative Actions */
+.contact-admin {
+    color: var(--ktu-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.contact-admin:hover {
+    color: #1e40af;
+    text-decoration: underline;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .login-right-panel {
+        min-height: 100vh;
+    }
+    
+    .university-title {
+        font-size: 2rem;
+    }
+    
+    .university-subtitle {
+        font-size: 1rem;
+    }
+    
+    .login-form-container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-right-panel {
+        padding: 1rem;
+    }
+    
+    .login-title {
+        font-size: 1.75rem;
+    }
+    
+    .form-floating > .form-control {
+        height: 54px;
+    }
+}
+
+/* Modern Dashboard Styles */
+.dashboard-container {
+    padding: 2rem 0;
+}
+
+.dashboard-header {
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--ktu-primary);
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+.header-actions .btn {
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Modern Stat Cards */
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.pending-card .stat-icon {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+
+.progress-card .stat-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.resolved-card .stat-icon {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--ktu-primary);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+.stat-card-footer {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.75rem;
+}
+
+/* Recent Issues Section */
+.recent-issues-section {
+    margin-top: 3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--ktu-primary);
+    margin-bottom: 0;
+}
+
+.modern-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+/* Issues Grid */
+.issues-grid {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.issue-item {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.issue-item:hover {
+    border-color: var(--ktu-primary);
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.1);
+}
+
+.issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.issue-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ktu-primary);
+    margin-bottom: 0;
+}
+
+.issue-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.category-tag {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.issue-date {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.issue-preview {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge.resolved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Empty State */
+.empty-state-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.empty-state {
+    text-align: center;
+    max-width: 400px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3, .empty-state h4 {
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+/* Modern Issue Cards */
+.issues-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modern-issue-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.modern-issue-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.issue-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.issue-title-section h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ktu-primary);
+    margin-bottom: 0.5rem;
+}
+
+.issue-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.issue-card-body {
+    padding: 1.5rem;
+}
+
+.issue-description {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.admin-response {
+    background: #f0f9ff;
+    border: 1px solid #e0f2fe;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.response-header {
+    font-weight: 600;
+    color: var(--ktu-primary);
+    margin-bottom: 0.5rem;
+}
+
+.response-text {
+    color: #4b5563;
+    margin-bottom: 0;
+}
+
+.issue-card-footer {
+    background: #f9fafb;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.issue-date {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+/* Admin Dashboard Styles */
+.admin-issues-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.admin-issue-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.admin-issue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.admin-issue-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ktu-primary);
+    margin-bottom: 0.5rem;
+}
+
+.student-info {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.student-name {
+    font-weight: 500;
+}
+
+.issue-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-issue-body {
+    padding: 1.5rem;
+}
+
+.previous-response {
+    background: #fef7cd;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.admin-action-section {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.admin-response-form .form-label {
+    color: var(--ktu-primary);
+    font-size: 0.875rem;
+}
+
+.admin-issue-footer {
+    background: #f3f4f6;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+    /* Responsive Design for Dashboards */
+    @media (max-width: 768px) {
+        .dashboard-title {
+            font-size: 2rem;
+        }
+        
+        .dashboard-header {
+            text-align: center;
+        }
+        
+        .header-actions {
+            margin-top: 1rem;
+        }
+        
+        .section-header {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+        
+        .issue-card-header,
+        .admin-issue-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .issue-actions,
+        .issue-meta {
+            align-self: stretch;
+        }
+        
+        .stat-card-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .admin-action-section .row {
+            flex-direction: column;
+        }
+        
+        .admin-action-section .col-md-2 {
+            align-self: stretch !important;
+        }
+    
+        /* Align stat cards horizontally on mobile only */
+        .dashboard-container .row.g-4.mb-5 {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            scroll-behavior: smooth;
+        }
+        .dashboard-container .row.g-4.mb-5 > div {
+            flex: 0 0 auto;
+            width: 100vw;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+        }
+        .dashboard-container .row.g-4.mb-5 > div .stat-icon {
+            font-size: 1.2rem;
+        }
+        .dashboard-container .row.g-4.mb-5 > div .stat-number {
+            font-size: 1.8rem;
+        }
+        .dashboard-container .row.g-4.mb-5 > div .stat-label {
+            font-size: 0.9rem;
+        }
+        .dashboard-container .row.g-4.mb-5 > div:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+    /* Admin issue cards horizontal scroll on mobile */
+    .admin-issues-container {
+        display: flex;
+        flex-wrap: wrap;
+        overflow-x: hidden;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        scroll-behavior: smooth;
+    }
+    .admin-issues-container > .admin-issue-card {
+        flex: 0 0 45%;
+        width: auto;
+        /* Remove fixed aspect ratio to allow flexible height */
+        /* aspect-ratio: 1 / 1; */
+        padding: 0.5rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        font-size: 0.85rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 1rem;
+    }

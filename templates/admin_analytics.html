@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - KTU Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Analytics Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="dashboard-title">
+                    <i class="fas fa-chart-line me-3"></i>Analytics Dashboard
+                </h1>
+                <p class="dashboard-subtitle text-muted">Comprehensive system analytics and insights</p>
+            </div>
+            <div class="header-actions d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <a href="#" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Export Data
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Range Filter -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="mb-0">Time Range Filter</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="updateTimeRange('30')">30 Days</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="updateTimeRange('90')">90 Days</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="updateTimeRange('365')">1 Year</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Analytics Charts -->
+    <div class="row g-4 mb-5">
+        <!-- Issues Timeline -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area me-2"></i>Issues Timeline by Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusTimelineChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Response Time Analysis -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Avg Response Time by Category
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="responseTimeChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Analytics -->
+    <div class="row g-4 mb-5">
+        <!-- User Activity -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-users me-2"></i>User Activity Trends
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userActivityChart" height="160"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Peak Hours -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-business-time me-2"></i>Peak Hours Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="peakHoursChart" height="160"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Trends -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Category Trends Over Time
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryTrendsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Summary Cards -->
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="analytics-card bg-primary text-white">
+                <div class="analytics-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="analytics-content">
+                    <h3 id="avgResolutionTime">-</h3>
+                    <p>Avg Resolution Time</p>
+                    <small>Hours</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="analytics-card bg-success text-white">
+                <div class="analytics-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="analytics-content">
+                    <h3 id="resolutionRate">-</h3>
+                    <p>Resolution Rate</p>
+                    <small>Percentage</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="analytics-card bg-warning text-white">
+                <div class="analytics-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="analytics-content">
+                    <h3 id="peakHour">-</h3>
+                    <p>Peak Hour</p>
+                    <small>Most Active</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="analytics-card bg-info text-white">
+                <div class="analytics-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="analytics-content">
+                    <h3 id="topCategory">-</h3>
+                    <p>Top Category</p>
+                    <small>Most Issues</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Chart configurations
+const chartColors = {
+    primary: '#1e3a8a',
+    secondary: '#f59e0b',
+    success: '#059669',
+    danger: '#dc2626',
+    warning: '#d97706',
+    info: '#0284c7',
+    purple: '#8b5cf6',
+    teal: '#14b8a6'
+};
+
+// Analytics data from server
+const statusTimelineData = {{ status_timeline | tojson | safe }};
+const responseTimesData = {{ response_times | tojson | safe }};
+const userActivityData = {{ user_activity | tojson | safe }};
+const peakHoursData = {{ peak_hours | tojson | safe }};
+const categoryTrendsData = {{ category_trends | tojson | safe }};
+
+// Status Timeline Chart
+const statusTimelineCtx = document.getElementById('statusTimelineChart').getContext('2d');
+const statusTimelineChart = new Chart(statusTimelineCtx, {
+    type: 'line',
+    data: {
+        labels: [...new Set(statusTimelineData.map(d => d.date))],
+        datasets: [
+            {
+                label: 'Pending',
+                data: statusTimelineData.filter(d => d.status === 'pending').map(d => ({ x: d.date, y: d.count })),
+                borderColor: chartColors.warning,
+                backgroundColor: chartColors.warning + '20',
+                tension: 0.4
+            },
+            {
+                label: 'In Progress',
+                data: statusTimelineData.filter(d => d.status === 'in_progress').map(d => ({ x: d.date, y: d.count })),
+                borderColor: chartColors.info,
+                backgroundColor: chartColors.info + '20',
+                tension: 0.4
+            },
+            {
+                label: 'Resolved',
+                data: statusTimelineData.filter(d => d.status === 'resolved').map(d => ({ x: d.date, y: d.count })),
+                borderColor: chartColors.success,
+                backgroundColor: chartColors.success + '20',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        }
+    }
+});
+
+// Response Time Chart
+const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+const responseTimeChart = new Chart(responseTimeCtx, {
+    type: 'bar',
+    data: {
+        labels: responseTimesData.map(d => d.category),
+        datasets: [{
+            label: 'Hours',
+            data: responseTimesData.map(d => Math.round(d.avg_hours * 10) / 10),
+            backgroundColor: [
+                chartColors.primary,
+                chartColors.secondary,
+                chartColors.success,
+                chartColors.danger,
+                chartColors.warning
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Hours'
+                }
+            }
+        }
+    }
+});
+
+// User Activity Chart
+const userActivityCtx = document.getElementById('userActivityChart').getContext('2d');
+const userActivityChart = new Chart(userActivityCtx, {
+    type: 'line',
+    data: {
+        labels: userActivityData.map(d => d.month),
+        datasets: [
+            {
+                label: 'Active Users',
+                data: userActivityData.map(d => d.active_users),
+                borderColor: chartColors.primary,
+                backgroundColor: chartColors.primary + '20',
+                yAxisID: 'y'
+            },
+            {
+                label: 'Total Issues',
+                data: userActivityData.map(d => d.total_issues),
+                borderColor: chartColors.secondary,
+                backgroundColor: chartColors.secondary + '20',
+                yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: { display: true, text: 'Active Users' }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: { display: true, text: 'Total Issues' },
+                grid: { drawOnChartArea: false }
+            }
+        }
+    }
+});
+
+// Peak Hours Chart
+const peakHoursCtx = document.getElementById('peakHoursChart').getContext('2d');
+const peakHoursChart = new Chart(peakHoursCtx, {
+    type: 'bar',
+    data: {
+        labels: peakHoursData.map(d => d.hour + ':00'),
+        datasets: [{
+            label: 'Issues Created',
+            data: peakHoursData.map(d => d.count),
+            backgroundColor: chartColors.info,
+            borderColor: chartColors.primary,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+
+// Category Trends Chart
+const categoryTrendsCtx = document.getElementById('categoryTrendsChart').getContext('2d');
+const categories = [...new Set(categoryTrendsData.map(d => d.category))];
+const months = [...new Set(categoryTrendsData.map(d => d.month))];
+
+const categoryTrendsChart = new Chart(categoryTrendsCtx, {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: categories.map((category, index) => ({
+            label: category,
+            data: months.map(month => {
+                const item = categoryTrendsData.find(d => d.category === category && d.month === month);
+                return item ? item.count : 0;
+            }),
+            borderColor: Object.values(chartColors)[index % Object.keys(chartColors).length],
+            backgroundColor: Object.values(chartColors)[index % Object.keys(chartColors).length] + '20',
+            tension: 0.4
+        }))
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+
+// Calculate and display summary metrics
+function calculateSummaryMetrics() {
+    // Average resolution time
+    const avgTime = responseTimesData.reduce((sum, d) => sum + d.avg_hours, 0) / responseTimesData.length;
+    document.getElementById('avgResolutionTime').textContent = Math.round(avgTime * 10) / 10;
+    
+    // Resolution rate (example calculation)
+    const totalIssues = statusTimelineData.reduce((sum, d) => sum + d.count, 0);
+    const resolvedIssues = statusTimelineData.filter(d => d.status === 'resolved').reduce((sum, d) => sum + d.count, 0);
+    const resolutionRate = totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0;
+    document.getElementById('resolutionRate').textContent = resolutionRate + '%';
+    
+    // Peak hour
+    const peakHourData = peakHoursData.reduce((max, d) => d.count > max.count ? d : max, peakHoursData[0] || {hour: 0});
+    document.getElementById('peakHour').textContent = peakHourData.hour + ':00';
+    
+    // Top category
+    const categoryTotals = {};
+    categoryTrendsData.forEach(d => {
+        categoryTotals[d.category] = (categoryTotals[d.category] || 0) + d.count;
+    });
+    const topCategory = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b, '');
+    document.getElementById('topCategory').textContent = topCategory || 'N/A';
+}
+
+// Time range update function
+function updateTimeRange(days) {
+    // Update active button
+    document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // In a real implementation, this would fetch new data from the server
+    console.log('Updating time range to:', days, 'days');
+}
+
+// Initialize summary metrics
+calculateSummaryMetrics();
+</script>
+
+<style>
+.analytics-card {
+    border-radius: 15px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+}
+
+.analytics-icon {
+    font-size: 3rem;
+    margin-right: 1.5rem;
+    opacity: 0.8;
+}
+
+.analytics-content h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.analytics-content p {
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.analytics-content small {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.dashboard-container {
+    padding: 2rem;
+}
+
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-title {
+    color: #1e3a8a;
+    font-weight: bold;
+    margin: 0;
+}
+
+.dashboard-subtitle {
+    margin: 0;
+    font-size: 1.1rem;
+}
+</style>
+
+{% endblock %}
