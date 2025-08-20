@@ -1,0 +1,19 @@
+
+{
+  "rules": {
+    "users": {
+      ".indexOn": ["email"],
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "issues": {
+      ".indexOn": ["user_id", "status"],
+      ".read": "auth != null", 
+      ".write": "auth != null"
+    },
+    "system_settings": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
