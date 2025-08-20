@@ -1,194 +1,217 @@
+
+import firebase_admin
+from firebase_admin import credentials, db
 import json
 import os
 from datetime import datetime
 import uuid
 
-class MockRealtimeDB:
-    def __init__(self):
-        self.data_file = 'local_database.json'
-        self.data = self.load_data()
-
-    def load_data(self):
-        """Load data from local JSON file"""
-        if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r') as f:
-                    return json.load(f)
-            except:
-                pass
-        return {'users': {}, 'issues': {}}
-
-    def save_data(self):
-        """Save data to local JSON file"""
+def initialize_firebase():
+    """Initialize Firebase with credentials and database URL"""
+    try:
+        # Check if Firebase app is already initialized
         try:
-            with open(self.data_file, 'w') as f:
-                json.dump(self.data, f, indent=2)
+            firebase_admin.get_app()
+            print("Firebase already initialized")
             return True
-        except Exception as e:
-            print(f"Error saving data: {e}")
-            return False
+        except ValueError:
+            pass
+        
+        # Load Firebase credentials
+        if os.path.exists('firebase_credentials.json'):
+            cred = credentials.Certificate('firebase_credentials.json')
+        else:
+            print("Firebase credentials file not found, using default credentials")
+            cred = credentials.ApplicationDefault()
+        
+        # Initialize Firebase with your Realtime Database URL
+        firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://scpv2-fa488-default-rtdb.firebaseio.com/'
+        })
+        
+        print("Firebase initialized successfully with Realtime Database")
+        return True
+        
+    except Exception as e:
+        print(f"Error initializing Firebase: {e}")
+        return False
 
+class RealtimeDB:
+    """Firebase Realtime Database integration"""
+    
+    def __init__(self):
+        self.db_ref = db.reference()
+    
     def add_user(self, user_data):
-        """Add user to database"""
+        """Add user to Firebase Realtime Database"""
         try:
-            user_id = str(uuid.uuid4())
-            self.data['users'][user_id] = user_data
-            self.save_data()
-            return user_id
+            users_ref = self.db_ref.child('users')
+            new_user_ref = users_ref.push(user_data)
+            return new_user_ref.key
         except Exception as e:
-            print(f"Error adding user: {e}")
+            print(f"Error adding user to Firebase: {e}")
             return None
-
+    
     def get_user(self, user_id):
-        """Get user from database"""
+        """Get user from Firebase Realtime Database"""
         try:
-            user_data = self.data['users'].get(user_id)
+            user_ref = self.db_ref.child('users').child(user_id)
+            user_data = user_ref.get()
             if user_data:
                 return {'id': user_id, **user_data}
             return None
         except Exception as e:
-            print(f"Error getting user: {e}")
+            print(f"Error getting user from Firebase: {e}")
             return None
-
+    
     def get_user_by_email(self, email):
-        """Get user by email from database"""
+        """Get user by email from Firebase Realtime Database"""
         try:
-            for user_id, user_data in self.data['users'].items():
-                if user_data.get('email') == email:
+            users_ref = self.db_ref.child('users')
+            users = users_ref.order_by_child('email').equal_to(email).get()
+            
+            if users:
+                for user_id, user_data in users.items():
                     return {'id': user_id, **user_data}
             return None
         except Exception as e:
-            print(f"Error getting user by email: {e}")
+            print(f"Error getting user by email from Firebase: {e}")
             return None
-
+    
     def update_user(self, user_id, data):
-        """Update user in database"""
+        """Update user in Firebase Realtime Database"""
         try:
-            if user_id in self.data['users']:
-                self.data['users'][user_id].update(data)
-                self.save_data()
-                return True
-            return False
+            user_ref = self.db_ref.child('users').child(user_id)
+            user_ref.update(data)
+            return True
         except Exception as e:
-            print(f"Error updating user: {e}")
+            print(f"Error updating user in Firebase: {e}")
             return False
-
+    
     def get_all_users(self):
-        """Get all users from database"""
+        """Get all users from Firebase Realtime Database"""
         try:
-            users = []
-            for user_id, user_data in self.data['users'].items():
-                users.append({'id': user_id, **user_data})
-            return users
-        except Exception as e:
-            print(f"Error getting all users: {e}")
+            users_ref = self.db_ref.child('users')
+            users_data = users_ref.get()
+            
+            if users_data:
+                users = []
+                for user_id, user_data in users_data.items():
+                    users.append({'id': user_id, **user_data})
+                return users
             return []
-
+        except Exception as e:
+            print(f"Error getting all users from Firebase: {e}")
+            return []
+    
     def add_issue(self, issue_data):
-        """Add issue to database"""
+        """Add issue to Firebase Realtime Database"""
         try:
-            issue_id = str(uuid.uuid4())
-            self.data['issues'][issue_id] = issue_data
-            self.save_data()
-            return issue_id
+            issues_ref = self.db_ref.child('issues')
+            new_issue_ref = issues_ref.push(issue_data)
+            return new_issue_ref.key
         except Exception as e:
-            print(f"Error adding issue: {e}")
+            print(f"Error adding issue to Firebase: {e}")
             return None
-
+    
     def get_issues(self, user_id=None, limit=None):
-        """Get issues from database"""
+        """Get issues from Firebase Realtime Database"""
         try:
-            issues = []
-            for issue_id, issue_data in self.data['issues'].items():
-                if user_id and issue_data.get('user_id') != user_id:
-                    continue
-                issues.append({'id': issue_id, **issue_data})
-
-            # Sort by created_at (newest first)
-            issues.sort(key=lambda x: x.get('created_at', ''), reverse=True)
-
-            if limit:
-                issues = issues[:limit]
-
-            return issues
-        except Exception as e:
-            print(f"Error getting issues: {e}")
+            issues_ref = self.db_ref.child('issues')
+            
+            if user_id:
+                issues_data = issues_ref.order_by_child('user_id').equal_to(user_id).get()
+            else:
+                issues_data = issues_ref.get()
+            
+            if issues_data:
+                issues = []
+                for issue_id, issue_data in issues_data.items():
+                    issues.append({'id': issue_id, **issue_data})
+                
+                # Sort by created_at (newest first)
+                issues.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+                
+                if limit:
+                    issues = issues[:limit]
+                
+                return issues
             return []
-
+        except Exception as e:
+            print(f"Error getting issues from Firebase: {e}")
+            return []
+    
     def update_issue(self, issue_id, data):
-        """Update issue in database"""
+        """Update issue in Firebase Realtime Database"""
         try:
-            if issue_id in self.data['issues']:
-                self.data['issues'][issue_id].update(data)
-                self.save_data()
-                return True
-            return False
+            issue_ref = self.db_ref.child('issues').child(issue_id)
+            issue_ref.update(data)
+            return True
         except Exception as e:
-            print(f"Error updating issue: {e}")
+            print(f"Error updating issue in Firebase: {e}")
             return False
-
+    
     def delete_issue(self, issue_id):
-        """Delete issue from database"""
+        """Delete issue from Firebase Realtime Database"""
         try:
-            if issue_id in self.data['issues']:
-                del self.data['issues'][issue_id]
-                self.save_data()
-                return True
-            return False
+            issue_ref = self.db_ref.child('issues').child(issue_id)
+            issue_ref.delete()
+            return True
         except Exception as e:
-            print(f"Error deleting issue: {e}")
+            print(f"Error deleting issue from Firebase: {e}")
             return False
-
+    
     def get_issues_with_user_info(self, limit=None):
-        """Get issues with user information"""
+        """Get issues with user information from Firebase Realtime Database"""
         try:
             issues = self.get_issues(limit=limit)
-
+            
             for issue in issues:
                 user_id = issue.get('user_id')
-                if user_id and user_id in self.data['users']:
-                    user_data = self.data['users'][user_id]
-                    issue['full_name'] = user_data.get('full_name', 'Unknown')
-                    issue['email'] = user_data.get('email', 'Unknown')
+                if user_id:
+                    user = self.get_user(user_id)
+                    if user:
+                        issue['full_name'] = user.get('full_name', 'Unknown')
+                        issue['email'] = user.get('email', 'Unknown')
+                    else:
+                        issue['full_name'] = 'Unknown User'
+                        issue['email'] = 'Unknown'
                 else:
                     issue['full_name'] = 'Unknown User'
                     issue['email'] = 'Unknown'
-
+            
             return issues
         except Exception as e:
-            print(f"Error getting issues with user info: {e}")
+            print(f"Error getting issues with user info from Firebase: {e}")
             return []
-
+    
     def get_statistics(self):
-        """Get system statistics"""
+        """Get system statistics from Firebase Realtime Database"""
         try:
-            total_users = len(self.data['users'])
-            total_issues = len(self.data['issues'])
-
+            users_ref = self.db_ref.child('users')
+            issues_ref = self.db_ref.child('issues')
+            
+            users_data = users_ref.get()
+            issues_data = issues_ref.get()
+            
+            total_users = len(users_data) if users_data else 0
+            total_issues = len(issues_data) if issues_data else 0
+            
             pending_issues = 0
-            for issue_data in self.data['issues'].values():
-                if issue_data.get('status') == 'pending':
-                    pending_issues += 1
-
+            if issues_data:
+                for issue_data in issues_data.values():
+                    if issue_data.get('status') == 'pending':
+                        pending_issues += 1
+            
             return {
                 'total_users': total_users,
                 'total_issues': total_issues,
                 'pending_issues': pending_issues
             }
         except Exception as e:
-            print(f"Error getting statistics: {e}")
+            print(f"Error getting statistics from Firebase: {e}")
             return {'total_users': 0, 'total_issues': 0, 'pending_issues': 0}
 
-# Use mock database instead of Firebase for now
-def initialize_firebase():
-    """Initialize mock database system"""
-    print("Using local mock database (no Firebase connection needed)")
-    return True
-
 def get_realtime_db():
-    """Get mock database reference"""
-    return MockRealtimeDB()
-
-# Database class for compatibility
-class RealtimeDB(MockRealtimeDB):
-    pass
+    """Get Firebase Realtime Database reference"""
+    return RealtimeDB()

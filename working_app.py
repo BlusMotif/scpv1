@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
@@ -308,10 +309,72 @@ def system_settings():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        # Handle system settings updates
-        flash('System settings updated successfully!', 'success')
+        # Handle system settings updates in Firebase
+        settings_data = {
+            'app_name': request.form.get('app_name', 'Student Report System'),
+            'maintenance_mode': request.form.get('maintenance_mode') == 'on',
+            'email_notifications': request.form.get('email_notifications') == 'on',
+            'max_issues_per_user': int(request.form.get('max_issues_per_user', 10)),
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        # Save settings to Firebase
+        try:
+            settings_ref = firebase_db.db_ref.child('system_settings')
+            settings_ref.set(settings_data)
+            flash('System settings updated successfully!', 'success')
+        except Exception as e:
+            flash('Failed to update system settings.', 'danger')
+            print(f"Error updating settings: {e}")
     
-    return render_template('system_settings.html')
+    # Get current settings from Firebase
+    try:
+        settings_ref = firebase_db.db_ref.child('system_settings')
+        current_settings = settings_ref.get() or {}
+    except Exception as e:
+        current_settings = {}
+        print(f"Error getting settings: {e}")
+    
+    return render_template('system_settings.html', settings=current_settings)
+
+@app.route('/admin/users/update-role/<user_id>', methods=['POST'])
+def update_user_role(user_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    new_role = request.form.get('role')
+    if new_role in ['student', 'subadmin', 'supa_admin']:
+        success = firebase_db.update_user(user_id, {'role': new_role})
+        if success:
+            flash('User role updated successfully!', 'success')
+        else:
+            flash('Failed to update user role.', 'danger')
+    else:
+        flash('Invalid role specified.', 'danger')
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/users/delete/<user_id>', methods=['POST'])
+def delete_user(user_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    # Don't allow deletion of the current user
+    if user_id == session['user_id']:
+        flash('Cannot delete your own account.', 'danger')
+        return redirect(url_for('manage_users'))
+
+    try:
+        user_ref = firebase_db.db_ref.child('users').child(user_id)
+        user_ref.delete()
+        flash('User deleted successfully!', 'success')
+    except Exception as e:
+        flash('Failed to delete user.', 'danger')
+        print(f"Error deleting user: {e}")
+    
+    return redirect(url_for('manage_users'))
 
 @app.route('/logout')
 def logout():
