@@ -378,11 +378,22 @@ def subadmin_dashboard():
     
     category_list = [{'category': k, 'count': v} for k, v in category_stats.items()]
     
+    # Ensure all issues have required fields and fix data structure
+    processed_issues = []
+    for issue in issues:
+        processed_issue = dict(issue)
+        # Ensure title field exists for template compatibility
+        if 'title' not in processed_issue and 'subject' in processed_issue:
+            processed_issue['title'] = processed_issue['subject']
+        elif 'subject' not in processed_issue and 'title' in processed_issue:
+            processed_issue['subject'] = processed_issue['title']
+        processed_issues.append(processed_issue)
+    
     return render_template('subadmin_dashboard.html', 
-                         issues=issues, 
+                         issues=processed_issues, 
                          stats=stats, 
                          current_user=current_user,
-                         recent_issues=issues[:10],
+                         recent_issues=processed_issues[:10],
                          category_stats=category_list)
 
 @app.route('/submit-issue', methods=['GET', 'POST'])
