@@ -30,7 +30,7 @@ def initialize_firebase():
         
         # Initialize Firebase with your Realtime Database URL
         firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://scpv2-fa488-default-rtdb.firebaseio.com/'
+            'databaseURL': 'https://scp-2-c5c6d-default-rtdb.firebaseio.com/'
         })
         
         print("Firebase initialized successfully with Realtime Database")
