@@ -391,6 +391,38 @@ def submit_issue():
         flash('Please login first.', 'danger')
         return redirect(url_for('login'))
 
+    # Get active categories for the form
+    try:
+        categories_ref = firebase_db.db_ref.child('issue_categories')
+        categories_data = categories_ref.get() or {}
+        active_categories = []
+        for key, value in categories_data.items():
+            if value.get('is_active', True):
+                active_categories.append({
+                    'name': value.get('name', ''),
+                    'description': value.get('description', '')
+                })
+        active_categories.sort(key=lambda x: x['name'])
+        
+        # Add default categories if none exist
+        if not active_categories:
+            active_categories = [
+                {'name': 'IT Support', 'description': 'Technical and IT related issues'},
+                {'name': 'Academic', 'description': 'Academic and course related issues'},
+                {'name': 'Facilities', 'description': 'Campus facilities and infrastructure'},
+                {'name': 'Student Services', 'description': 'Student services and support'},
+                {'name': 'Other', 'description': 'Other issues not covered above'}
+            ]
+    except Exception as e:
+        active_categories = [
+            {'name': 'IT Support', 'description': 'Technical and IT related issues'},
+            {'name': 'Academic', 'description': 'Academic and course related issues'},
+            {'name': 'Facilities', 'description': 'Campus facilities and infrastructure'},
+            {'name': 'Student Services', 'description': 'Student services and support'},
+            {'name': 'Other', 'description': 'Other issues not covered above'}
+        ]
+        print(f"Error getting categories: {e}")
+
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
@@ -413,7 +445,7 @@ def submit_issue():
         else:
             flash('Failed to submit issue. Please try again.', 'danger')
 
-    return render_template('submit_issue.html')
+    return render_template('submit_issue.html', categories=active_categories)
 
 @app.route('/verify-email', methods=['GET', 'POST'])
 def verify_email():
@@ -834,6 +866,171 @@ def toggle_prefix(prefix_id):
         print(f"Error toggling prefix: {e}")
     
     return redirect(url_for('manage_prefixes'))
+
+@app.route('/admin/manage-categories')
+def manage_categories():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        categories_ref = firebase_db.db_ref.child('issue_categories')
+        categories_data = categories_ref.get() or {}
+        categories = []
+        
+        # Get issue counts for each category
+        issues_ref = firebase_db.db_ref.child('issues')
+        issues_data = issues_ref.get() or {}
+        
+        category_counts = {}
+        for issue_id, issue in issues_data.items():
+            category = issue.get('category', 'Other')
+            category_counts[category] = category_counts.get(category, 0) + 1
+        
+        for key, value in categories_data.items():
+            category = value
+            category['id'] = key
+            category['issue_count'] = category_counts.get(category.get('name', ''), 0)
+            categories.append(category)
+        
+        categories.sort(key=lambda x: x.get('name', ''))
+    except Exception as e:
+        categories = []
+        print(f"Error getting categories: {e}")
+    
+    return render_template('manage_categories.html', categories=categories)
+
+@app.route('/admin/add-category', methods=['POST'])
+def add_category():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if name:
+        try:
+            # Check if category already exists
+            categories_ref = firebase_db.db_ref.child('issue_categories')
+            categories_data = categories_ref.get() or {}
+            
+            category_exists = False
+            for key, value in categories_data.items():
+                if value.get('name', '').lower() == name.lower():
+                    category_exists = True
+                    break
+            
+            if category_exists:
+                flash('Category already exists.', 'danger')
+            else:
+                category_data = {
+                    'name': name,
+                    'description': description,
+                    'is_active': True,
+                    'created_at': datetime.now().isoformat()
+                }
+                categories_ref.push(category_data)
+                flash('Category added successfully!', 'success')
+        except Exception as e:
+            flash('Failed to add category.', 'danger')
+            print(f"Error adding category: {e}")
+    else:
+        flash('Please fill in the category name.', 'danger')
+    
+    return redirect(url_for('manage_categories'))
+
+@app.route('/admin/edit-category/<category_id>', methods=['POST'])
+def edit_category(category_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if name:
+        try:
+            category_ref = firebase_db.db_ref.child('issue_categories').child(category_id)
+            category_data = category_ref.get()
+            
+            if category_data:
+                update_data = {
+                    'name': name,
+                    'description': description,
+                    'updated_at': datetime.now().isoformat()
+                }
+                category_ref.update(update_data)
+                flash('Category updated successfully!', 'success')
+            else:
+                flash('Category not found.', 'danger')
+        except Exception as e:
+            flash('Failed to update category.', 'danger')
+            print(f"Error updating category: {e}")
+    else:
+        flash('Please fill in the category name.', 'danger')
+    
+    return redirect(url_for('manage_categories'))
+
+@app.route('/admin/delete-category/<category_id>', methods=['POST'])
+def delete_category(category_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        category_ref = firebase_db.db_ref.child('issue_categories').child(category_id)
+        category_data = category_ref.get()
+        
+        if category_data:
+            # Check if category is being used
+            issues_ref = firebase_db.db_ref.child('issues')
+            issues_data = issues_ref.get() or {}
+            
+            category_in_use = False
+            for issue_id, issue in issues_data.items():
+                if issue.get('category') == category_data.get('name'):
+                    category_in_use = True
+                    break
+            
+            if category_in_use:
+                flash('Cannot delete category. It is being used by existing issues.', 'warning')
+            else:
+                category_ref.delete()
+                flash('Category deleted successfully!', 'success')
+        else:
+            flash('Category not found.', 'danger')
+    except Exception as e:
+        flash('Failed to delete category.', 'danger')
+        print(f"Error deleting category: {e}")
+    
+    return redirect(url_for('manage_categories'))
+
+@app.route('/admin/toggle-category/<category_id>', methods=['POST'])
+def toggle_category(category_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        category_ref = firebase_db.db_ref.child('issue_categories').child(category_id)
+        category_data = category_ref.get()
+        
+        if category_data:
+            new_status = not category_data.get('is_active', True)
+            category_ref.update({
+                'is_active': new_status,
+                'updated_at': datetime.now().isoformat()
+            })
+            status_text = 'activated' if new_status else 'deactivated'
+            flash(f'Category {status_text} successfully!', 'success')
+        else:
+            flash('Category not found.', 'danger')
+    except Exception as e:
+        flash('Failed to update category status.', 'danger')
+        print(f"Error toggling category: {e}")
+    
+    return redirect(url_for('manage_categories'))
 
 @app.route('/admin/users/delete/<user_id>', methods=['POST'])
 def delete_user(user_id):

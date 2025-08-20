@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Manage Index Prefixes - Admin{% endblock %}
@@ -34,11 +33,12 @@
             {% if prefixes %}
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Prefix</th>
                             <th>Description</th>
                             <th>Status</th>
+                            <th>Students Using</th>
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
@@ -49,38 +49,41 @@
                             <td>
                                 <span class="badge bg-primary fs-6">{{ prefix.prefix }}</span>
                             </td>
-                            <td>{{ prefix.description }}</td>
+                            <td class="text-muted">{{ prefix.description }}</td>
                             <td>
-                                {% if prefix.get('is_active', True) %}
+                                {% if prefix.is_active %}
                                     <span class="badge bg-success">Active</span>
                                 {% else %}
-                                    <span class="badge bg-danger">Inactive</span>
+                                    <span class="badge bg-secondary">Inactive</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <small>{{ parse_datetime(prefix.get('created_at', '')) }}</small>
+                                <span class="badge bg-info">{{ prefix.student_count or 0 }} students</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ parse_datetime(prefix.created_at) if prefix.created_at else 'N/A' }}</small>
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#editPrefixModal{{ prefix.id }}"
-                                            title="Edit">
+                                            onclick="editPrefix('{{ prefix.id }}', '{{ prefix.prefix }}', '{{ prefix.description }}')"
+                                            data-bs-toggle="tooltip" title="Edit Prefix">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <form method="POST" action="{{ url_for('toggle_prefix', prefix_id=prefix.id) }}" class="d-inline">
-                                        <button type="submit" 
-                                                class="btn btn-outline-{% if prefix.get('is_active', True) %}warning{% else %}success{% endif %}"
-                                                title="{% if prefix.get('is_active', True) %}Deactivate{% else %}Activate{% endif %}">
-                                            <i class="fas fa-{% if prefix.get('is_active', True) %}pause{% else %}play{% endif %}"></i>
+                                    <form method="POST" action="{{ url_for('toggle_prefix', prefix_id=prefix.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-outline-warning"
+                                                data-bs-toggle="tooltip" title="{% if prefix.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                            <i class="fas fa-{% if prefix.is_active %}pause{% else %}play{% endif %}"></i>
                                         </button>
                                     </form>
-                                    <button class="btn btn-outline-danger" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#deletePrefixModal{{ prefix.id }}"
-                                            title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <form method="POST" action="{{ url_for('delete_prefix', prefix_id=prefix.id) }}" 
+                                          style="display: inline;" 
+                                          onsubmit="return confirm('Are you sure you want to delete this prefix? This will affect students who use this prefix.')">
+                                        <button type="submit" class="btn btn-outline-danger"
+                                                data-bs-toggle="tooltip" title="Delete Prefix">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -91,8 +94,8 @@
             {% else %}
             <div class="text-center py-5">
                 <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No Index Prefixes</h5>
-                <p class="text-muted">Add your first prefix to get started.</p>
+                <h5 class="text-muted">No index prefixes found</h5>
+                <p class="text-muted">Add your first index prefix to help organize student registration</p>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPrefixModal">
                     <i class="fas fa-plus me-2"></i>Add First Prefix
                 </button>
@@ -207,5 +210,19 @@ document.querySelectorAll('input[name="prefix"]').forEach(input => {
         this.value = this.value.toUpperCase();
     });
 });
+
+// Function to populate the edit modal (if not using Bootstrap's data-bs-target directly for editing)
+// This function is a placeholder if you intend to use JavaScript to pre-fill edit fields
+function editPrefix(id, prefixValue, descriptionValue) {
+    // Example: You might find the modal and fill its form fields here
+    // For this example, we assume the data-bs-target links directly to pre-filled modals.
+    // If you need dynamic loading, you would implement that here.
+    console.log(`Editing prefix with ID: ${id}`);
+    // Example of finding and filling fields if you were to use JS for modal population:
+    // var modal = new bootstrap.Modal(document.getElementById('editPrefixModal' + id));
+    // document.getElementById('edit_prefix_' + id).value = prefixValue;
+    // document.getElementById('edit_description_' + id).value = descriptionValue;
+    // modal.show();
+}
 </script>
 {% endblock %}
