@@ -387,4 +387,4 @@ if __name__ == '__main__':
     init_default_users()
     print("Firebase Student Report System initialized successfully!")
     print("Server will be available at: http://0.0.0.0:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

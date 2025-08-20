@@ -20,9 +20,13 @@ def initialize_firebase():
         # Load Firebase credentials
         if os.path.exists('firebase_credentials.json'):
             cred = credentials.Certificate('firebase_credentials.json')
+            print("Using firebase_credentials.json")
+        elif os.path.exists('firebase_credentials.json.example'):
+            print("WARNING: Please rename 'firebase_credentials.json.example' to 'firebase_credentials.json' and add your actual Firebase credentials")
+            return False
         else:
-            print("Firebase credentials file not found, using default credentials")
-            cred = credentials.ApplicationDefault()
+            print("Firebase credentials file not found. Please add firebase_credentials.json with your Firebase service account key")
+            return False
         
         # Initialize Firebase with your Realtime Database URL
         firebase_admin.initialize_app(cred, {
