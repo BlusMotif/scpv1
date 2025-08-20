@@ -201,7 +201,7 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-history me-2"></i>Recent Admin Activities
                     </h5>
-                    <a href="{{ url_for('system_settings') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{{ url_for('view_all_activities') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     {% if recent_activities %}
@@ -243,7 +243,7 @@
                         <a href="{{ url_for('system_settings') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-cogs me-2"></i>System Settings
                         </a>
-                        <a href="{{ url_for('manage_users') }}" class="btn btn-outline-info">
+                        <a href="{{ url_for('admin_manage_notifications') }}" class="btn btn-outline-info">
                             <i class="fas fa-bell me-2"></i>Manage Notifications
                         </a>
                     </div>
@@ -276,7 +276,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Student</th>
-                            <th>Subject</th>
+                            <th>Title</th>
                             <th>Category</th>
                             <th>Priority</th>
                             <th>Status</th>
@@ -290,27 +290,18 @@
                             <td><span class="badge bg-secondary">#{{ issue.id }}</span></td>
                             <td>
                                 <div>
-                                    <strong>{{ issue.full_name }}</strong>
-                                    <br><small class="text-muted">{{ issue.index_number }}</small>
+                                    <strong>{{ issue.full_name or 'Unknown' }}</strong>
+                                    <br><small class="text-muted">{{ issue.email or 'N/A' }}</small>
                                 </div>
                             </td>
                             <td>
-                                <div class="text-truncate" style="max-width: 200px;" title="{{ issue.subject }}">
-                                    {{ issue.subject }}
+                                <div class="text-truncate" style="max-width: 200px;" title="{{ issue.title }}">
+                                    {{ issue.title }}
                                 </div>
                             </td>
                             <td><span class="badge bg-info">{{ issue.category }}</span></td>
                             <td>
-                                {% set priority = issue.priority or 'Medium' %}
-                                {% if priority == 'Critical' %}
-                                    <span class="badge bg-danger">{{ priority }}</span>
-                                {% elif priority == 'High' %}
-                                    <span class="badge bg-warning">{{ priority }}</span>
-                                {% elif priority == 'Medium' %}
-                                    <span class="badge bg-primary">{{ priority }}</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ priority }}</span>
-                                {% endif %}
+                                <span class="badge bg-primary">Medium</span>
                             </td>
                             <td>
                                 {% if issue.status == 'pending' %}
@@ -349,26 +340,25 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Issue #{{ issue.id }} - {{ issue.subject }}</h5>
+                    <h5 class="modal-title">Issue #{{ issue.id }} - {{ issue.title }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Student:</strong> {{ issue.full_name }}</p>
-                            <p><strong>Index Number:</strong> {{ issue.index_number }}</p>
-                            <p><strong>Email:</strong> {{ issue.email }}</p>
+                            <p><strong>Student:</strong> {{ issue.full_name or 'Unknown' }}</p>
+                            <p><strong>Email:</strong> {{ issue.email or 'N/A' }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Category:</strong> {{ issue.category }}</p>
-                            <p><strong>Priority:</strong> {{ issue.priority or 'Medium' }}</p>
+                            <p><strong>Priority:</strong> Medium</p>
                             <p><strong>Status:</strong> {{ issue.status.title() }}</p>
                         </div>
                     </div>
                     <hr>
                     <div class="mb-3">
-                        <strong>Message:</strong>
-                        <div class="mt-2 p-3 bg-light rounded">{{ issue.message }}</div>
+                        <strong>Description:</strong>
+                        <div class="mt-2 p-3 bg-light rounded">{{ issue.description }}</div>
                     </div>
                     {% if issue.response %}
                     <div class="mb-3">
@@ -409,7 +399,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the issue "<strong>{{ issue.subject }}</strong>" by <strong>{{ issue.full_name }}</strong>?</p>
+                    <p>Are you sure you want to delete the issue "<strong>{{ issue.title }}</strong>" by <strong>{{ issue.full_name or 'Unknown' }}</strong>?</p>
                     <p class="text-muted">This action cannot be undone.</p>
                 </div>
                 <div class="modal-footer">

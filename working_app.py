@@ -223,6 +223,28 @@ def admin_dashboard():
                          recent_activities=recent_activities,
                          notifications=notifications)
 
+@app.route('/admin/manage-users')
+def admin_manage_users():
+    return redirect(url_for('manage_users'))
+
+@app.route('/admin/manage-notifications')
+def admin_manage_notifications():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    return render_template('admin_notifications.html')
+
+@app.route('/admin/view-all-activities')
+def view_all_activities():
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+    
+    # Mock activities data
+    activities = []
+    return render_template('admin_activities.html', activities=activities)
+
 @app.route('/subadmin-dashboard')
 def subadmin_dashboard():
     if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
