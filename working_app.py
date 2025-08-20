@@ -303,15 +303,18 @@ def manage_users():
 
     users = firebase_db.get_all_users()
     
+    # Filter only subadmins for the manage subadmins page
+    subadmins = [user for user in users if user.get('role') == 'subadmin']
+    
     # Add missing properties for template compatibility
-    for user in users:
+    for user in subadmins:
         user['username'] = user.get('email', '').split('@')[0]
         user['is_active'] = user.get('is_active', True)
         user['assigned_issues'] = 0  # TODO: Calculate from Firebase
         user['login_count'] = user.get('login_count', 0)
         user['last_login'] = user.get('last_login', 'Never')
     
-    return render_template('manage_subadmins.html', subadmins=users, users=users, activities=[])
+    return render_template('manage_users_simple.html', subadmins=subadmins)
 
 @app.route('/create-subadmin', methods=['GET', 'POST'])
 def create_subadmin():
@@ -475,6 +478,52 @@ def delete_user(user_id):
     except Exception as e:
         flash('Failed to delete user.', 'danger')
         print(f"Error deleting user: {e}")
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/toggle-subadmin/<user_id>', methods=['POST'])
+def toggle_subadmin(user_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        user = firebase_db.get_user_by_id(user_id)
+        if user and user.get('role') == 'subadmin':
+            new_status = not user.get('is_active', True)
+            firebase_db.update_user(user_id, {'is_active': new_status})
+            status_text = 'activated' if new_status else 'deactivated'
+            flash(f'Sub-admin {status_text} successfully!', 'success')
+        else:
+            flash('Sub-admin not found.', 'danger')
+    except Exception as e:
+        flash('Failed to update sub-admin status.', 'danger')
+        print(f"Error toggling subadmin: {e}")
+    
+    return redirect(url_for('manage_users'))
+
+@app.route('/delete-subadmin/<user_id>', methods=['POST'])
+def delete_subadmin(user_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    # Don't allow deletion of the current user
+    if user_id == session['user_id']:
+        flash('Cannot delete your own account.', 'danger')
+        return redirect(url_for('manage_users'))
+
+    try:
+        user = firebase_db.get_user_by_id(user_id)
+        if user and user.get('role') == 'subadmin':
+            user_ref = firebase_db.db_ref.child('users').child(user_id)
+            user_ref.delete()
+            flash('Sub-admin deleted successfully!', 'success')
+        else:
+            flash('Sub-admin not found.', 'danger')
+    except Exception as e:
+        flash('Failed to delete sub-admin.', 'danger')
+        print(f"Error deleting subadmin: {e}")
     
     return redirect(url_for('manage_users'))
 
