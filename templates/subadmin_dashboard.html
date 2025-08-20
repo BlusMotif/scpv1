@@ -14,7 +14,7 @@
                 <p class="dashboard-subtitle text-muted">Manage student issues and concerns</p>
             </div>
             <div class="header-actions">
-                <span class="badge bg-primary fs-6">{{ g.user.full_name }}</span>
+                <span class="badge bg-primary fs-6">{{ session.user_name or current_user.full_name }}</span>
             </div>
         </div>
     </div>

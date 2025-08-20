@@ -86,7 +86,7 @@
                 <h5 class="modal-title">Create System Notification</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="#">
+            <form method="POST" action="{{ url_for('admin_manage_notifications') }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="title" class="form-label">Title</label>
@@ -124,10 +124,14 @@ function deleteNotification(id) {
         fetch(`/admin/delete-notification/${id}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             }
-        }).then(() => {
-            location.reload();
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Failed to delete notification');
+            }
         }).catch(err => {
             console.error('Error deleting notification:', err);
         });

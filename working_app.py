@@ -22,7 +22,10 @@ app.secret_key = "student-report-system-firebase-secret-key"
 
 @app.context_processor
 def utility_processor():
-    return dict(parse_datetime=parse_datetime)
+    return dict(
+        parse_datetime=parse_datetime,
+        session=session
+    )
 
 # Initialize Firebase and Database
 initialize_firebase()
@@ -227,13 +230,53 @@ def admin_dashboard():
 def admin_manage_users():
     return redirect(url_for('manage_users'))
 
-@app.route('/admin/manage-notifications')
+@app.route('/admin/manage-notifications', methods=['GET', 'POST'])
 def admin_manage_notifications():
     if 'user_role' not in session or session['user_role'] != 'supa_admin':
         flash('Access denied. Admin only.', 'danger')
         return redirect(url_for('login'))
     
-    return render_template('admin_notifications.html')
+    if request.method == 'POST':
+        title = request.form.get('title')
+        message = request.form.get('message')
+        notification_type = request.form.get('type', 'info')
+        
+        if title and message:
+            # Save notification to Firebase
+            try:
+                notification_data = {
+                    'title': title,
+                    'message': message,
+                    'type': notification_type,
+                    'created_at': datetime.now().isoformat(),
+                    'is_read': False
+                }
+                notifications_ref = firebase_db.db_ref.child('notifications')
+                notifications_ref.push(notification_data)
+                flash('Notification created successfully!', 'success')
+            except Exception as e:
+                flash('Failed to create notification.', 'danger')
+                print(f"Error creating notification: {e}")
+        else:
+            flash('Please fill in all required fields.', 'danger')
+        
+        return redirect(url_for('admin_manage_notifications'))
+    
+    # Get notifications from Firebase
+    try:
+        notifications_ref = firebase_db.db_ref.child('notifications')
+        notifications_data = notifications_ref.get() or {}
+        notifications = []
+        for key, value in notifications_data.items():
+            notification = value
+            notification['id'] = key
+            notifications.append(notification)
+        notifications.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    except Exception as e:
+        notifications = []
+        print(f"Error getting notifications: {e}")
+    
+    return render_template('admin_notifications.html', notifications=notifications)
 
 @app.route('/admin/view-all-activities')
 def view_all_activities():
@@ -261,12 +304,32 @@ def subadmin_dashboard():
     
     stats = {
         'total_issues': total_issues,
-        'pending_issues': pending_issues,
-        'in_progress_issues': in_progress_issues,
-        'resolved_issues': resolved_issues
+        'pending': pending_issues,
+        'in_progress': in_progress_issues,
+        'resolved': resolved_issues
     }
     
-    return render_template('subadmin_dashboard.html', issues=issues, stats=stats)
+    # Get current user info
+    current_user = {
+        'full_name': session.get('user_name', 'Sub Admin'),
+        'email': session.get('user_email', ''),
+        'role': session.get('user_role', 'subadmin')
+    }
+    
+    # Get category statistics
+    category_stats = {}
+    for issue in issues:
+        category = issue.get('category', 'Other')
+        category_stats[category] = category_stats.get(category, 0) + 1
+    
+    category_list = [{'category': k, 'count': v} for k, v in category_stats.items()]
+    
+    return render_template('subadmin_dashboard.html', 
+                         issues=issues, 
+                         stats=stats, 
+                         current_user=current_user,
+                         recent_issues=issues[:10],
+                         category_stats=category_list)
 
 @app.route('/submit-issue', methods=['GET', 'POST'])
 def submit_issue():
@@ -376,6 +439,59 @@ def create_subadmin():
 
     return render_template('create_subadmin.html')
 
+@app.route('/admin/resolve-issue/<issue_id>', methods=['POST'])
+def admin_resolve_issue(issue_id):
+    if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('login'))
+
+    new_status = request.form.get('status')
+    response_text = request.form.get('response', '')
+    
+    update_data = {
+        'status': new_status,
+        'updated_at': datetime.now().isoformat()
+    }
+    
+    if response_text:
+        update_data['admin_response'] = response_text
+    
+    success = firebase_db.update_issue(issue_id, update_data)
+    
+    if success:
+        flash('Issue updated successfully!', 'success')
+    else:
+        flash('Failed to update issue.', 'danger')
+    
+    return redirect(url_for('subadmin_dashboard'))
+
+@app.route('/admin/issue/<issue_id>')
+def get_issue_details(issue_id):
+    if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
+        return {'error': 'Access denied'}, 403
+
+    try:
+        issues = firebase_db.get_issues_with_user_info()
+        issue = next((i for i in issues if i.get('id') == issue_id), None)
+        
+        if issue:
+            return {
+                'id': issue.get('id'),
+                'full_name': issue.get('full_name', ''),
+                'email': issue.get('email', ''),
+                'index_number': issue.get('index_number', 'N/A'),
+                'category': issue.get('category', ''),
+                'status': issue.get('status', ''),
+                'subject': issue.get('title', ''),
+                'message': issue.get('description', ''),
+                'response': issue.get('admin_response', ''),
+                'created_at': issue.get('created_at', '')
+            }
+        else:
+            return {'error': 'Issue not found'}, 404
+    except Exception as e:
+        return {'error': str(e)}, 500
+
 @app.route('/update-issue-status/<issue_id>', methods=['POST'])
 def update_issue_status(issue_id):
     if 'user_role' not in session or session['user_role'] not in ['subadmin', 'supa_admin']:
@@ -481,6 +597,22 @@ def update_user_role(user_id):
         flash('Invalid role specified.', 'danger')
     
     return redirect(url_for('manage_users'))
+
+@app.route('/admin/delete-notification/<notification_id>', methods=['POST'])
+def delete_notification(notification_id):
+    if 'user_role' not in session or session['user_role'] != 'supa_admin':
+        flash('Access denied. Admin only.', 'danger')
+        return redirect(url_for('login'))
+
+    try:
+        notification_ref = firebase_db.db_ref.child('notifications').child(notification_id)
+        notification_ref.delete()
+        flash('Notification deleted successfully!', 'success')
+    except Exception as e:
+        flash('Failed to delete notification.', 'danger')
+        print(f"Error deleting notification: {e}")
+    
+    return redirect(url_for('admin_manage_notifications'))
 
 @app.route('/admin/users/delete/<user_id>', methods=['POST'])
 def delete_user(user_id):
